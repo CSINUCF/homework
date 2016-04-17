@@ -1,0 +1,51 @@
+Program ::= Member:Class*;
+Class ::= ClassType:ClassProp <ClassName:String> Properties Methods;	
+
+Properties ::= PropS:Blockstmt*;
+Methods  ::= Funcs:Function*;
+
+Function ::= <FuncName:String> FParam ReturnType:VarType Mbody;
+
+FParam ::= Param:VarDecl*;
+Mbody ::= Body:Blockstmt*;
+
+/*Define a set of Statements as a program block*/
+Block ::= BlockS:Blockstmt*;
+
+abstract Blockstmt;
+
+/*Multiple statement*/
+AssignS:Blockstmt 	::= LabelAST:NumLabel <VarName:String> <OpType:String> Expression; /*a = 3*/
+IfS:Blockstmt 		::= ConditionExp:LExp B1:Block B2:Block;
+WhileS:Blockstmt 	::= ConditionExp:LExp Block;
+
+/*Declare Statement*/
+VarDecl:Blockstmt 	::= LabelAST:NumLabel <Varm> <VarName> Type:VarType;			/* Declare a Variable, like val x:Integer;*/
+VarDef:Blockstmt	::= LabelAST:NumLabel <Varm> <VarName> Type:VarType Expression;	/* define a variable, like val x:Integer = 3*/
+
+/*Operation*/
+abstract Op ::= <Contents>;
+Op_b : Op;	/*Boolean Operation*/
+Op_r : Op;	/*Relational Operations*/
+Op_a : Op;	/*Arithmetic Operations*/
+
+/*Expression*/
+abstract Expression;
+
+/*basic expression*/
+VarRefExp:Expression 	::= <Contents>; /* x = y*/
+NumLitExp:Expression 	::= <Contents>; /* x = 3*/
+BoolLitExp:Expression  	::= <Contents>; /* x = true/false(just only)*/
+
+/*combound expression*/
+NotExp:Expression 		::= Expression; /* x = ~(...)*/
+LExp:Expression 		::= LabelAST:NumLabel Expression;/*Label Expression which is used in while or if condition part*/
+AExp:Expression 		::= Left:Expression Op:Op_a Right:Expression; /*Arithmetic Expression*/
+RExp:Expression 		::= Left:Expression Op:Op_r Right:Expression; /*Relational Expression*/
+BExp:Expression 		::= Left:Expression Op:Op_b Right:Expression; /*Boolean expression*/
+
+
+abstract Label;
+VarType:Label  	::= <KeyWord>; /*Variable type info*/
+ClassProp:Label ::= <KeyWord>; /*Class Property*/
+NumLabel:Label 	::= <Num>; /*Label System to identify a statement*/

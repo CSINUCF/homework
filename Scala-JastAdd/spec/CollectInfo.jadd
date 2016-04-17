@@ -1,0 +1,239 @@
+import java.util.Collection;
+import utility.InfoType;
+aspect CollectInfo {
+	/**
+	 * Define Statement collectInfo Function to tranverse the AST to collection 
+	 * information that we need.
+	 * For example, we can define a typecheck statement in the blockstmt to check 
+	 * the type issue.
+	 * @author Bing
+	 * @param
+	 *   Collection c	: 	store the collect result;
+	 *   InfoType cType	:   specify the collect task
+	 */
+	public void Class.collectInfo(Collection c,InfoType cType){
+		/**Class ::= ClassType:ClassProp <ClassName:String> Properties Methods;	*/
+		if(getProperties() != null)
+			getProperties().collectInfo(c,cType);
+		if(getMethods() != null)
+			getMethods().collectInfo(c,cType);
+	}
+	public void Properties.collectInfo(Collection c,InfoType cType) {
+		/**Properties ::= PropS:Blockstmt*;*/
+		for (Blockstmt bs : getPropSList()) {
+			bs.collectInfo(c,cType);
+		}
+	} 
+	public void Methods.collectInfo(Collection c,InfoType cType) {
+		/**Methods  ::= Funcs:Function*;*/
+		for(Function f : getFuncsList()){
+			f.collectInfo(c,cType);
+		}
+	}
+	public void Function.collectInfo(Collection c,InfoType cType) {
+		/**Function ::= <FuncName:String> FParam ReturnType:VarType Mbody;*/
+		if(getFParam() != null)
+			getFParam().collectInfo(c,cType);
+		if(getMbody() != null)
+			getMbody().collectInfo(c,cType);
+
+	}
+	public void FParam.collectInfo(Collection c,InfoType cType) {
+		/**FParam ::= Param:VarDecl*;*/
+		for(int i=0;i<getNumParam();i++){
+			getParam(i).collectInfo(c,cType);
+		}
+	}
+	
+	public void Mbody.collectInfo(Collection c,InfoType cType) {
+		/**Mbody ::= Body:Blockstmt*;*/
+		for (Blockstmt bs : getBodyList()) {
+			bs.collectInfo(c,cType);
+		}
+	}
+	
+	public void Block.collectInfo(Collection c,InfoType cType) {
+		/**Block ::= BlockS:Blockstmt*;*/
+		for (Blockstmt bs : getBlockSs()) {
+			bs.collectInfo(c,cType);
+		}
+	}
+	abstract void Blockstmt.collectInfo(Collection c,InfoType cType); /*abstract Blockstmt;*/
+	public void AssignS.collectInfo(Collection c,InfoType cType){
+		/*AssignS:Blockstmt 	::= LabelAST:Label <VarName:String> Expression;*/
+		getExpression().collectInfo(c,cType);
+		switch (cType.getValue())
+		{
+			case 1:
+			{
+				c.addAll(this.killRD());
+			}break;
+			case 2:
+			{
+				c.addAll(this.genRD());
+			}break;
+			case 3:
+			{
+				c.addAll(this.RDentry());
+			}break;
+			case 4:{
+				c.addAll(this.RDexit());
+			}break;
+			default:
+			{
+				System.out.println("Wrong option:"+cType.getValue());
+			}
+		}
+	}
+	public void IfS.collectInfo(Collection c,InfoType cType){
+		/*IfS:Blockstmt 		::= ConditionExp:LExp B1:Block B2:Block;*/
+		getConditionExp().collectInfo(c,cType);
+		getB1().collectInfo(c,cType);
+		getB2().collectInfo(c,cType);
+	}
+	public void WhileS.collectInfo(Collection c,InfoType cType){
+		/*WhileS:Blockstmt 	::= ConditionExp:LExp Block;*/
+		getConditionExp().collectInfo(c,cType);
+		getBlock().collectInfo(c,cType);
+	}
+	public void VarDecl.collectInfo(Collection c,InfoType cType){
+		/*VarDecl:Blockstmt 	::= LabelAST:Label <Varm> <VarName> Type:VarType;*/
+		switch (cType.getValue())
+		{
+			case 1:
+			{
+				c.addAll(this.killRD());
+			}break;
+			case 2:
+			{
+				c.addAll(this.genRD());
+			}break;
+			case 3:
+			{
+				c.addAll(this.RDentry());
+			}break;
+			case 4:{
+				c.addAll(this.RDexit());
+			}break;
+			default:
+			{
+				System.out.println("Wrong option:"+cType.getValue());
+			}
+		}
+	}
+	public void VarDef.collectInfo(Collection c,InfoType cType){
+		/*VarDef:Blockstmt	::= LabelAST:Label <Varm> <VarName> Type:VarType Expression;*/
+		switch (cType.getValue())
+		{
+			case 1:
+			{
+				c.addAll(this.killRD());
+			}break;
+			case 2:
+			{
+				c.addAll(this.genRD());
+			}break;
+			case 3:
+			{
+				c.addAll(this.RDentry());
+			}break;
+			case 4:{
+				c.addAll(this.RDexit());
+			}break;
+			default:
+			{
+				System.out.println("Wrong option:"+cType.getValue());
+			}
+		}
+	}
+	
+	/*
+	 * Define Expression collectInfo Function
+	 */
+	abstract void Expression.collectInfo(Collection c,InfoType cType); /*abstract Expression;*/
+	public void VarRefExp.collectInfo(Collection c,InfoType cType){
+		/*VarRefExp:Expression 	::= <Contents>;*/
+	}
+	public void NumLitExp.collectInfo(Collection c,InfoType cType){
+		/*NumLitExp:Expression 	::= <Contents>;*/
+	}
+	public void BoolLitExp.collectInfo(Collection c,InfoType cType){
+		/*BoolLitExp:Expression  	::= <Contents>;*/
+	}
+	public void NotExp.collectInfo(Collection c,InfoType cType){
+		/*NotExp:Expression 		::= Expression;*/
+		getExpression().collectInfo(c,cType);
+	}
+	public void LExp.collectInfo(Collection c,InfoType cType){
+		/*LExp:Expression 		::= LabelAST:Label Expression;*/
+		getExpression().collectInfo(c,cType);
+		switch (cType.getValue())
+		{
+			case 1:
+			{
+				c.addAll(this.killRD());
+			}break;
+			case 2:
+			{
+				c.addAll(this.genRD());
+			}break;
+			case 3:
+			{
+				c.addAll(this.RDentry());
+			}break;
+			case 4:{
+				c.addAll(this.RDexit());
+			}break;
+			default:
+			{
+				System.out.println("Wrong option:"+cType.getValue());
+			}
+		}
+	}
+	public void AExp.collectInfo(Collection c,InfoType cType){
+		/*AExp:Expression 		::= Left:Expression Op:Op_a Right:Expression;*/
+		getLeft().collectInfo(c,cType);
+		getOp().collectInfo(c,cType);
+		getRight().collectInfo(c,cType);
+	}
+	public void RExp.collectInfo(Collection c,InfoType cType){
+		/*RExp:Expression 		::= Left:Expression Op:Op_r Right:Expression;*/
+		getLeft().collectInfo(c,cType);
+		getOp().collectInfo(c,cType);
+		getRight().collectInfo(c,cType);
+	}
+	public void BExp.collectInfo(Collection c,InfoType cType){
+		/*BExp:Expression 		::= Left:Expression Op:Op_b Right:Expression;*/
+		getLeft().collectInfo(c,cType);
+		getOp().collectInfo(c,cType);
+		getRight().collectInfo(c,cType);
+	}
+	
+	/*
+	 *Define Op collectInfo function
+	 */
+	abstract void Op.collectInfo(Collection c,InfoType cType); /*abstract Op ::= <Contents>;*/
+	public void Op_b.collectInfo(Collection c,InfoType cType){
+		/*Op_b : Op;*/
+	}
+	public void Op_r.collectInfo(Collection c,InfoType cType){
+		/*Op_r : Op;*/
+	}
+	public void Op_a.collectInfo(Collection c,InfoType cType){
+		/*Op_a : Op;*/
+	}
+	
+	/*
+	 *Define Label collectInfo function
+	 */
+	abstract void Label.collectInfo(Collection c,InfoType cType); /*abstract Label;;*/
+	public void VarType.collectInfo(Collection c,InfoType cType){
+		/*VarType:Label  	::= <KeyWord>;*/
+	}
+	public void NumLabel.collectInfo(Collection c,InfoType cType){
+		/*NumLabel:Label 	::= <Num>;*/
+	}
+	public void ClassProp.collectInfo(Collection c,InfoType cType){
+		/*ClassProp:Label  	::= <KeyWord>;*/
+	}
+}

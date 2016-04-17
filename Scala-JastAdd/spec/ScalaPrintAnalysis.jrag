@@ -1,0 +1,293 @@
+import java.util.*;
+import utility.Pair;
+import AST.*;
+aspect ScalaPrintAnalysis{
+
+	/*
+	 * Define gatherInfo Function to print the dat flow analysis results
+	 */
+	public void Program.printAnalysisResult(){
+		/*Program ::= Member:Class*;*/
+		StringBuilder sb = new StringBuilder();
+		for(Class m : getMemberList()){
+			m.gatherInfo(sb, 0);
+			sb.append("\n");
+		}
+		System.out.println("############The data flow analysis result:\n"+sb.toString());
+	}
+	
+	public void Class.gatherInfo(StringBuilder sb, int t){
+		/*Class ::= ClassType:ClassProp <ClassName:String> Properties Methods;*/
+		getClassType().gatherInfo(sb,t);
+		sb.append(" ClassName{").append(getClassName()).append("} {\n");
+		
+		if(getProperties() != null)
+			getProperties().gatherInfo(sb,t);
+		else
+			sb.append("\tNo Properties\n");
+		
+		/**Because we are focus on intraprocedural analysis rather than interprocedural analysis
+		 * so for now we will not consider the analysis of methods*/
+		/*
+		if(getMethods() != null)
+			getMethods().gatherInfo(sb,t);
+		else
+			sb.append("\tNo Methods\n");
+		*/
+		
+		sb.append(getIndent(t)).append("}\n");
+	}
+	public void Properties.gatherInfo(StringBuilder sb, int t) {
+		
+		//Properties ::= PropS:Blockstmt*;
+		for (Blockstmt bs : getPropSList()) {
+			bs.gatherInfo(sb, t+1);
+			sb.append("\n");
+		}
+	} 
+	public void Methods.gatherInfo(StringBuilder sb, int t) {
+		//Methods  ::= Funcs:Function*;
+		sb.append("\n");
+		for(Function f : getFuncsList()){
+			f.gatherInfo(sb,t+1);
+			sb.append("\n");	
+		}
+		sb.append("\n");
+	}
+	public void Function.gatherInfo(StringBuilder sb, int t) {
+		//Function ::= <FuncName:String> FParam ReturnType:VarType Mbody;
+		sb.append(getIndent(t)).append("def ").append(getFuncName()).append("(");
+		if(getFParam() != null)
+			getFParam().gatherInfo(sb,0);
+		sb.append(") : ");
+		if(getReturnType() != null)
+			getReturnType().gatherInfo(sb,0);
+		else
+			sb.append("Union");
+		sb.append(" {\n");
+		if(getMbody() != null)
+			getMbody().gatherInfo(sb,t+1);
+		sb.append(getIndent(t)).append(" }\n");
+	}
+	public void FParam.gatherInfo(StringBuilder sb, int t) {
+		//FParam ::= Param:VarDecl*;
+		for(int i=0;i<getNumParam();i++){
+			getParam(i).gatherInfo(sb,t);
+			if(i != (getNumParam()-1))
+				sb.append(",");
+		}
+	}
+	
+	public void Mbody.gatherInfo(StringBuilder sb, int t) {
+		//Mbody ::= Body:Blockstmt*;
+		sb.append("\n");
+		for (Blockstmt bs : getBodyList()) {
+			bs.gatherInfo(sb, t);
+			sb.append("\n");
+		}
+		sb.append("\n");
+	}
+	
+	public void Block.gatherInfo(StringBuilder sb, int t) {
+		/*Block ::= BlockS:Blockstmt*;*/
+		sb.append("\n").append(getIndent(t)).append("{\n");
+		for (Blockstmt bs : getBlockSs()) {
+			bs.gatherInfo(sb, t+1);
+		}
+		sb.append(getIndent(t)).append("}\n");
+	}
+	
+	abstract void Blockstmt.gatherInfo(StringBuilder sb, int t); /*abstract Blockstmt;*/
+	
+	public void AssignS.gatherInfo(StringBuilder sb, int t){
+		/*AssignS:Blockstmt 	::= LabelAST:Label <VarName:String> Expression;*/
+		sb.append(getIndent(t)).append("AssignS:{");
+		getLabelAST().gatherInfo(sb,0);
+		sb.append(", ");
+		sb.append("VarName:").append(getVarName());
+		sb.append(", OpType:");
+		sb.append(getOpType());
+		sb.append(", ");
+		getExpression().gatherInfo(sb,0);
+		sb.append("}");
+		sb.append("\n");
+		this.printAnalysis(sb,t);		
+	}
+	public void IfS.gatherInfo(StringBuilder sb, int t){
+		/*IfS:Blockstmt 		::= ConditionExp:LExp B1:Block B2:Block;*/
+		sb.append(getIndent(t)).append("IfS: ");
+		getConditionExp().gatherInfo(sb,t);
+		sb.append("\n").append(getIndent(t)).append("True: ");
+		if(getB1() != null)
+			getB1().gatherInfo(sb,t);
+		sb.append("\n").append(getIndent(t)).append("False: ");
+		if(getB2() != null)
+			getB2().gatherInfo(sb,t);
+		sb.append("\n");
+	}
+	public void WhileS.gatherInfo(StringBuilder sb, int t){
+		/*WhileS:Blockstmt 	::= ConditionExp:LExp Block;*/
+		sb.append(getIndent(t)).append("WhileS: ");
+		getConditionExp().gatherInfo(sb,t);
+		sb.append("\n").append(getIndent(t)).append("Block: ");
+		if(getBlock()!=null)
+			getBlock().gatherInfo(sb,t);
+		sb.append("\n");
+		
+	}
+	public void VarDecl.gatherInfo(StringBuilder sb, int t){
+		/*VarDecl:Blockstmt 	::= LabelAST:Label <Varm> <VarName> Type:VarType;*/
+		
+		sb.append(getIndent(t)).append("VarDec:{");
+		getLabelAST().gatherInfo(sb,0);
+		if(!getVarm().isEmpty())
+			sb.append(", ").append("Varm:").append(getVarm());
+		else
+			sb.append(", ").append("Varm:").append("val");
+		sb.append(", ").append("VarName: ").append(getVarName());
+		sb.append(", ");
+		getType().gatherInfo(sb,0);
+		sb.append("}");
+		sb.append("\n");
+		this.printAnalysis(sb,t);
+		
+	}
+	public void VarDef.gatherInfo(StringBuilder sb, int t){
+		/*VarDef:Blockstmt	::= LabelAST:Label <Varm> <VarName> Type:VarType Expression;*/
+		sb.append(getIndent(t)).append("VarDef:{ ");
+		getLabelAST().gatherInfo(sb,0);
+		sb.append(", ").append("Varm: ").append(getVarm());
+		sb.append(", ").append("VarName: ").append(getVarName());
+		sb.append(", ");
+		getType().gatherInfo(sb,0);
+		sb.append(", ");
+		getExpression().gatherInfo(sb,0);
+		sb.append("}");
+		sb.append("\n");
+		this.printAnalysis(sb,t);	
+	}
+	
+	/*
+	 * Define Expression gatherInfo Function
+	 */
+	abstract void Expression.gatherInfo(StringBuilder sb, int t); /*abstract Expression;*/
+	
+	public void VarRefExp.gatherInfo(StringBuilder sb, int t){
+		/*VarRefExp:Expression 	::= <Contents>;*/
+		sb.append(getIndent(t)).append("VarRefExp:{").append(getContents()).append("}");
+	}
+	public void NumLitExp.gatherInfo(StringBuilder sb, int t){
+		/*NumLitExp:Expression 	::= <Contents>;*/
+		sb.append(getIndent(t)).append("NumLitExp:{").append(getContents()).append("}");
+	}
+	public void BoolLitExp.gatherInfo(StringBuilder sb, int t){
+		/*BoolLitExp:Expression  	::= <Contents>;*/
+		sb.append(getIndent(t)).append("BoolLitExp:{").append(getContents()).append("}");
+	}
+	public void NotExp.gatherInfo(StringBuilder sb, int t){
+		/*NotExp:Expression 		::= Expression;*/
+		sb.append(getIndent(t)).append("NotExp:!{");
+		getExpression().gatherInfo(sb,0);
+		sb.append(" }");
+	}
+	public void LExp.gatherInfo(StringBuilder sb, int t){
+		/*LExp:Expression 		::= LabelAST:Label Expression;*/
+		sb.append(getIndent(0)).append("LExp:{");
+		getLabelAST().gatherInfo(sb,0);
+		sb.append(", ");
+		getExpression().gatherInfo(sb,0);
+		sb.append(" }");
+		this.printAnalysis(sb,t);
+	}
+	public void AExp.gatherInfo(StringBuilder sb, int t){
+		/*AExp:Expression 		::= Left:Expression Op:Op_a Right:Expression;*/
+		sb.append(getIndent(t)).append("AExp:{");
+		getLeft().gatherInfo(sb,0);
+		sb.append(", ");
+		getOp().gatherInfo(sb,0);
+		sb.append(", ");
+		getRight().gatherInfo(sb,0);
+		sb.append(" }");
+	}
+	public void RExp.gatherInfo(StringBuilder sb, int t){
+		/*RExp:Expression 		::= Left:Expression Op:Op_r Right:Expression;*/
+		sb.append(getIndent(t)).append("RExp:{");
+		getLeft().gatherInfo(sb,0);
+		sb.append(", ");
+		getOp().gatherInfo(sb,0);
+		sb.append(", ");
+		getRight().gatherInfo(sb,0);
+		sb.append(" }");
+	}
+	public void BExp.gatherInfo(StringBuilder sb, int t){
+		/*BExp:Expression 		::= Left:Expression Op:Op_b Right:Expression;*/
+		sb.append(getIndent(t)).append("BExp:{");
+		getLeft().gatherInfo(sb,0);
+		sb.append(", ");
+		getOp().gatherInfo(sb,0);
+		sb.append(", ");
+		getRight().gatherInfo(sb,t);
+		sb.append(" }");
+	}
+	
+	/*
+	 *Define Op gatherInfo function
+	 */
+	abstract void Op.gatherInfo(StringBuilder sb, int t); /*abstract Op ::= <Contents>;*/
+	
+	public void Op_b.gatherInfo(StringBuilder sb, int t){
+		/*Op_b : Op;*/
+		sb.append(getIndent(t)).append("Op_b:{").append(getContents()).append("}");
+	}
+	public void Op_r.gatherInfo(StringBuilder sb, int t){
+		/*Op_r : Op;*/
+		sb.append(getIndent(t)).append("Op_r:{").append(getContents()).append("}");
+	}
+	public void Op_a.gatherInfo(StringBuilder sb, int t){
+		/*Op_a : Op;*/
+		sb.append(getIndent(t)).append("Op_a:{").append(getContents()).append("}");
+	}
+	
+	/*
+	 *Define Label gatherInfo function
+	 */
+	abstract void Label.gatherInfo(StringBuilder sb, int t); /*abstract Label;;*/
+	public String Label.gatherInfo()
+	{
+		StringBuilder sb = new StringBuilder();
+		this.gatherInfo(sb,0);
+		return sb.toString();
+		
+	}
+	public void VarType.gatherInfo(StringBuilder sb, int t){
+		/*VarType:Label  	::= <KeyWord>;*/
+		sb.append(getIndent(t)).append("VarType:{").append(getKeyWord()).append("}");
+	}
+	public void ClassProp.gatherInfo(StringBuilder sb, int t){
+		/*ClassProp:Label ::= <KeyWord>;*/
+		sb.append(getIndent(t)).append("ClassType:{").append(getKeyWord()).append("}");
+	}
+	public void NumLabel.gatherInfo(StringBuilder sb, int t){
+		/*NumLabel:Label 	::= <Num>;*/
+		sb.append(getIndent(t)).append("NumLabel:{").append(getNum()).append("}");
+	}
+	
+	syn String Blockstmt.gatherInfo();
+	eq Blockstmt.gatherInfo(){
+		StringBuilder sb = new StringBuilder();
+		this.gatherInfo(sb,0);
+		return sb.toString();	
+	}
+	syn String Expression.gatherInfo();
+	eq Expression.gatherInfo(){
+		StringBuilder sb = new StringBuilder();
+		this.gatherInfo(sb,0);
+		return sb.toString();
+	}
+	syn String Op.gatherInfo();
+	eq Op.gatherInfo(){
+		StringBuilder sb = new StringBuilder();
+		this.gatherInfo(sb,0);
+		return sb.toString();
+	}
+}
