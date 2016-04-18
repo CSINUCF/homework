@@ -15,7 +15,7 @@ Block ::= BlockS:Blockstmt*;
 abstract Blockstmt;
 
 /*Multiple statement*/
-AssignS:Blockstmt 	::= LabelAST:NumLabel <VarName:String> <OpType:String> Expression; /*a = 3*/
+AssignS:Blockstmt 	::= LabelAST:NumLabel <VarName:String> <OpType:String> Expression; /*a = 3; a += 3;*/
 IfS:Blockstmt 		::= ConditionExp:LExp B1:Block B2:Block;
 WhileS:Blockstmt 	::= ConditionExp:LExp Block;
 
@@ -38,8 +38,8 @@ NumLitExp:Expression 	::= <Contents>; /* x = 3*/
 BoolLitExp:Expression  	::= <Contents>; /* x = true/false(just only)*/
 
 /*combound expression*/
-NotExp:Expression 		::= Expression; /* x = ~(...)*/
-LExp:Expression 		::= LabelAST:NumLabel Expression;/*Label Expression which is used in while or if condition part*/
+NotExp:Expression 		::= Expression; 					/* x = ~(...)*/
+LExp:Expression 		::= LabelAST:NumLabel Expression;	/*Label Expression which is used in while or if condition part*/
 AExp:Expression 		::= Left:Expression Op:Op_a Right:Expression; /*Arithmetic Expression*/
 RExp:Expression 		::= Left:Expression Op:Op_r Right:Expression; /*Relational Expression*/
 BExp:Expression 		::= Left:Expression Op:Op_b Right:Expression; /*Boolean expression*/

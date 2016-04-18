@@ -95,6 +95,8 @@ List blockStmtList =
     	stmt                          		{: return new List().add(stmt); :}
   	| 	blockStmtList stmt  		  	{: return blockStmtList.add(stmt); :}
   	;
+  	
+ /*a block of statements, which consist of assignment, ifelse, while vardecl and vardef statement*/ 	
 Blockstmt stmt = 
 		assigns.a		{:	return a;	:}
 	|	ifs.i			{:	return i;	:}
@@ -102,6 +104,7 @@ Blockstmt stmt =
 	|	vardecl.l		{:	return l;	:}
 	|	vardef.f		{:	return f;	:}
 	;
+/*Assignment statement*/
 AssignS	assigns = 	
 		IDENTIFIER EQ expression.e SEMICOLON				{: return new AssignS(new NumLabel(LabelUtility.nextLabel()),IDENTIFIER, EQ,e); :} 			/* x = expression*/
 	|	IDENTIFIER PLUSEQ expression.e SEMICOLON			{: return new AssignS(new NumLabel(LabelUtility.nextLabel()),IDENTIFIER, PLUSEQ,e); :}		/* x += expression*/ 
@@ -116,19 +119,21 @@ AssignS	assigns =
 	|	IDENTIFIER RSHIFTEQ expression.e SEMICOLON			{: return new AssignS(new NumLabel(LabelUtility.nextLabel()),IDENTIFIER, RSHIFTEQ,e); :}	/* x <<= expression*/	
 	|	IDENTIFIER URSHIFTEQ expression.e SEMICOLON			{: return new AssignS(new NumLabel(LabelUtility.nextLabel()),IDENTIFIER, URSHIFTEQ,e); :}	/* x >>>= expression*/				
 	;
+/*if else statement*/
 IfS	ifs = IF LPAREN condition.c RPAREN block.b1 ELSE block.b2			{:	return new IfS(c,b1,b2);	:}; /* if(){} else{} */ 
-	
+/*while statement*/	
 WhileS whiles = WHILE LPAREN condition.c RPAREN block.b	{:	return new WhileS(c,b);	:} ;
-	
+/*declare a variable*/	
 VarDecl vardecl = 	
 		VAR IDENTIFIER COLON varType.type SEMICOLON					{:	return new VarDecl(new NumLabel(LabelUtility.nextLabel()),VAR,IDENTIFIER,type);	:}/*Declare a variable as var*/
 	|	VAL IDENTIFIER COLON varType.type SEMICOLON					{:	return new VarDecl(new NumLabel(LabelUtility.nextLabel()),VAL,IDENTIFIER,type);	:}/*Declare a variable as val*/
 	;
+/*define a variable*/	
 VarDef	vardef = 	
 		VAR IDENTIFIER COLON varType.type EQ expression.e SEMICOLON 	{:	return new VarDef (new NumLabel(LabelUtility.nextLabel()),VAR,IDENTIFIER,type,e);	:} /*Define a variable*/
 	|	VAL IDENTIFIER COLON varType.type EQ expression.e SEMICOLON 	{:	return new VarDef (new NumLabel(LabelUtility.nextLabel()),VAL,IDENTIFIER,type,e);	:} /*Define a variable*/
 	;	
-
+/*Type info of a variable*/
 VarType varType = 
 		BYTE					{: return new VarType(BYTE); :}
 	|	INT						{: return new VarType(INT); :}
