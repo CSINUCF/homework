@@ -16,7 +16,7 @@ aspect ScalaVB {
 		for (Expression exp : current)
 		{
 			if (exp.FV().containsKey(assigned_var)) 
-			ret.add(exp);
+				ret.add(exp);
 		}
 		return ret;
 	}

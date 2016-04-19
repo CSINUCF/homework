@@ -126,11 +126,6 @@ aspect ScalaExpr {
     	//AExp:Expression 		::= Left:Expression Op:Op_a Right:Expression; 
           Set<Expression> ret = new HashSet<Expression>();
           
-          /**###################
-           (a+3) + (b+5)
-           exp: (a+3) + (b+5), a+3, b+5
-           */
-          
           ret.add(this);
           ret.addAll(getLeft().Aexps());
           ret.addAll(getRight().Aexps());

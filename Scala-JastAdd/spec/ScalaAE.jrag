@@ -41,9 +41,7 @@ aspect AE {
 	eq AssignS.genAE() {
 		Set<Expression> ret = new HashSet<Expression>();
 		Expression exp = getExpression();
-		if (exp.nontrivial()
-			&& !(exp.FV().containsKey(getVarName()))) {
-			
+		if (exp.nontrivial() && !(exp.FV().containsKey(getVarName()))) {
 			ret.add(exp);
 		}
 		return ret;
@@ -60,14 +58,15 @@ aspect AE {
 	eq VarDecl.genAE() = new HashSet<Expression>();/*null*/
 	
 	eq LExp.genAE() {
-		Expression e = getExpression();
-		if (e.nontrivial()) {
-			Set<Expression> ret = new HashSet<Expression>();
-			ret.add(e);
-			return ret;
-		} else {
-			return new HashSet<Expression>();
+		Set<Expression> tmp = this.Aexps();
+		Iterator<Expression> it = tmp.iterator();
+		while(it.hasNext()){
+			Expression e = it.next();
+			if (e.nontrivial() == false) {
+				tmp.remove(e);
+			}
 		}
+		return tmp;
 	}
 	
 	/*Compute the entry information for the AE analysis.*/

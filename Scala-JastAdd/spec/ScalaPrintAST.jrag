@@ -115,7 +115,7 @@ aspect ScalaPrintAST {
 	public void IfS.prettyPrint(StringBuilder sb, int t){
 		/*IfS:Blockstmt 		::= ConditionExp:LExp B1:Block B2:Block;*/
 		sb.append(getIndent(t)).append("IfS: ");
-		getConditionExp().prettyPrint(sb,0);
+		getConditionExp().prettyPrint(sb,t);
 		sb.append("\n").append(getIndent(t)).append("True: ");
 		if(getB1() != null)
 			getB1().prettyPrint(sb,t);
@@ -127,7 +127,7 @@ aspect ScalaPrintAST {
 	public void WhileS.prettyPrint(StringBuilder sb, int t){
 		/*WhileS:Blockstmt 	::= ConditionExp:LExp Block;*/
 		sb.append(getIndent(t)).append("WhileS: ");
-		getConditionExp().prettyPrint(sb,0);
+		getConditionExp().prettyPrint(sb,t);
 		sb.append("\n").append(getIndent(t)).append("Block: ");
 		if(getBlock()!=null)
 			getBlock().prettyPrint(sb,t);
