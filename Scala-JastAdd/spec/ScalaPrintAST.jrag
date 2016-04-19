@@ -108,7 +108,8 @@ aspect ScalaPrintAST {
 		sb.append(", ");
 		getExpression().prettyPrint(sb,0);
 		sb.append("}");
-		sb.append("\n");	
+		sb.append("\n");
+		this.printAnalysis(sb,t);
 	}
 	public void IfS.prettyPrint(StringBuilder sb, int t){
 		/*IfS:Blockstmt 		::= ConditionExp:LExp B1:Block B2:Block;*/
@@ -145,6 +146,7 @@ aspect ScalaPrintAST {
 		getType().prettyPrint(sb,0);
 		sb.append("}");
 		sb.append("\n");
+		this.printAnalysis(sb,t);
 	}
 	public void VarDef.prettyPrint(StringBuilder sb, int t){
 		/*VarDef:Blockstmt	::= LabelAST:Label <Varm> <VarName> Type:VarType Expression;*/
@@ -158,6 +160,7 @@ aspect ScalaPrintAST {
 		getExpression().prettyPrint(sb,0);
 		sb.append("}");
 		sb.append("\n");
+		this.printAnalysis(sb,t);
 	}
 	
 	/*
@@ -190,6 +193,7 @@ aspect ScalaPrintAST {
 		sb.append(", ");
 		getExpression().prettyPrint(sb,0);
 		sb.append(" }");
+		this.printAnalysis(sb,t);
 	}
 	public void AExp.prettyPrint(StringBuilder sb, int t){
 		/*AExp:Expression 		::= Left:Expression Op:Op_a Right:Expression;*/

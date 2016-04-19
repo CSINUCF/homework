@@ -1,12 +1,12 @@
 package utility;
-public enum InfoType {
+public enum AnalysisType {
 	Normal(0),
-	RDkill(1),
-	RDgen(2),
-	RDentry(3),
-	RDexit(4);
+	AE(1),
+	RD(2),
+	VB(3),
+	LV(4);
 	private int index;
-	private InfoType(int idx){
+	private AnalysisType(int idx){
 		this.index = idx;
 	}
 	public int getValue()

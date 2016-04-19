@@ -11,7 +11,7 @@ public class ScalaNonExp extends TestCase {
 
 	public void testScalaFlows()
 	{
-		ScalaCompiler compiler = new ScalaCompiler("input/t4.txt");
+		ScalaCompiler compiler = new ScalaCompiler("input/t8.txt");
 		Program p = compiler.run();
 		runPreErrorCheck(p);
 	}

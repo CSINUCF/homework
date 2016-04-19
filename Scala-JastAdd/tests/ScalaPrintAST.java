@@ -2,7 +2,7 @@ package tests;
 import junit.framework.TestCase;
 import AST.*;
 import java.util.*;
-import utility.InfoType;
+import utility.AnalysisType;
 /**
  * 
  * @author Bing

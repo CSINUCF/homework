@@ -1,5 +1,5 @@
 import java.util.Collection;
-import utility.InfoType;
+import utility.AnalysisType;
 aspect CollectInfo {
 	/**
 	 * Define Statement collectInfo Function to tranverse the AST to collection 
@@ -9,28 +9,28 @@ aspect CollectInfo {
 	 * @author Bing
 	 * @param
 	 *   Collection c	: 	store the collect result;
-	 *   InfoType cType	:   specify the collect task
+	 *   AnalysisType cType	:   specify the collect task
 	 */
-	public void Class.collectInfo(Collection c,InfoType cType){
+	public void Class.collectInfo(Collection c,AnalysisType cType){
 		/**Class ::= ClassType:ClassProp <ClassName:String> Properties Methods;	*/
 		if(getProperties() != null)
 			getProperties().collectInfo(c,cType);
 		if(getMethods() != null)
 			getMethods().collectInfo(c,cType);
 	}
-	public void Properties.collectInfo(Collection c,InfoType cType) {
+	public void Properties.collectInfo(Collection c,AnalysisType cType) {
 		/**Properties ::= PropS:Blockstmt*;*/
 		for (Blockstmt bs : getPropSList()) {
 			bs.collectInfo(c,cType);
 		}
 	} 
-	public void Methods.collectInfo(Collection c,InfoType cType) {
+	public void Methods.collectInfo(Collection c,AnalysisType cType) {
 		/**Methods  ::= Funcs:Function*;*/
 		for(Function f : getFuncsList()){
 			f.collectInfo(c,cType);
 		}
 	}
-	public void Function.collectInfo(Collection c,InfoType cType) {
+	public void Function.collectInfo(Collection c,AnalysisType cType) {
 		/**Function ::= <FuncName:String> FParam ReturnType:VarType Mbody;*/
 		if(getFParam() != null)
 			getFParam().collectInfo(c,cType);
@@ -38,28 +38,28 @@ aspect CollectInfo {
 			getMbody().collectInfo(c,cType);
 
 	}
-	public void FParam.collectInfo(Collection c,InfoType cType) {
+	public void FParam.collectInfo(Collection c,AnalysisType cType) {
 		/**FParam ::= Param:VarDecl*;*/
 		for(int i=0;i<getNumParam();i++){
 			getParam(i).collectInfo(c,cType);
 		}
 	}
 	
-	public void Mbody.collectInfo(Collection c,InfoType cType) {
+	public void Mbody.collectInfo(Collection c,AnalysisType cType) {
 		/**Mbody ::= Body:Blockstmt*;*/
 		for (Blockstmt bs : getBodyList()) {
 			bs.collectInfo(c,cType);
 		}
 	}
 	
-	public void Block.collectInfo(Collection c,InfoType cType) {
+	public void Block.collectInfo(Collection c,AnalysisType cType) {
 		/**Block ::= BlockS:Blockstmt*;*/
 		for (Blockstmt bs : getBlockSs()) {
 			bs.collectInfo(c,cType);
 		}
 	}
-	abstract void Blockstmt.collectInfo(Collection c,InfoType cType); /*abstract Blockstmt;*/
-	public void AssignS.collectInfo(Collection c,InfoType cType){
+	abstract void Blockstmt.collectInfo(Collection c,AnalysisType cType); /*abstract Blockstmt;*/
+	public void AssignS.collectInfo(Collection c,AnalysisType cType){
 		/*AssignS:Blockstmt 	::= LabelAST:Label <VarName:String> Expression;*/
 		getExpression().collectInfo(c,cType);
 		switch (cType.getValue())
@@ -85,18 +85,18 @@ aspect CollectInfo {
 			}
 		}
 	}
-	public void IfS.collectInfo(Collection c,InfoType cType){
+	public void IfS.collectInfo(Collection c,AnalysisType cType){
 		/*IfS:Blockstmt 		::= ConditionExp:LExp B1:Block B2:Block;*/
 		getConditionExp().collectInfo(c,cType);
 		getB1().collectInfo(c,cType);
 		getB2().collectInfo(c,cType);
 	}
-	public void WhileS.collectInfo(Collection c,InfoType cType){
+	public void WhileS.collectInfo(Collection c,AnalysisType cType){
 		/*WhileS:Blockstmt 	::= ConditionExp:LExp Block;*/
 		getConditionExp().collectInfo(c,cType);
 		getBlock().collectInfo(c,cType);
 	}
-	public void VarDecl.collectInfo(Collection c,InfoType cType){
+	public void VarDecl.collectInfo(Collection c,AnalysisType cType){
 		/*VarDecl:Blockstmt 	::= LabelAST:Label <Varm> <VarName> Type:VarType;*/
 		switch (cType.getValue())
 		{
@@ -121,7 +121,7 @@ aspect CollectInfo {
 			}
 		}
 	}
-	public void VarDef.collectInfo(Collection c,InfoType cType){
+	public void VarDef.collectInfo(Collection c,AnalysisType cType){
 		/*VarDef:Blockstmt	::= LabelAST:Label <Varm> <VarName> Type:VarType Expression;*/
 		switch (cType.getValue())
 		{
@@ -150,21 +150,21 @@ aspect CollectInfo {
 	/*
 	 * Define Expression collectInfo Function
 	 */
-	abstract void Expression.collectInfo(Collection c,InfoType cType); /*abstract Expression;*/
-	public void VarRefExp.collectInfo(Collection c,InfoType cType){
+	abstract void Expression.collectInfo(Collection c,AnalysisType cType); /*abstract Expression;*/
+	public void VarRefExp.collectInfo(Collection c,AnalysisType cType){
 		/*VarRefExp:Expression 	::= <Contents>;*/
 	}
-	public void NumLitExp.collectInfo(Collection c,InfoType cType){
+	public void NumLitExp.collectInfo(Collection c,AnalysisType cType){
 		/*NumLitExp:Expression 	::= <Contents>;*/
 	}
-	public void BoolLitExp.collectInfo(Collection c,InfoType cType){
+	public void BoolLitExp.collectInfo(Collection c,AnalysisType cType){
 		/*BoolLitExp:Expression  	::= <Contents>;*/
 	}
-	public void NotExp.collectInfo(Collection c,InfoType cType){
+	public void NotExp.collectInfo(Collection c,AnalysisType cType){
 		/*NotExp:Expression 		::= Expression;*/
 		getExpression().collectInfo(c,cType);
 	}
-	public void LExp.collectInfo(Collection c,InfoType cType){
+	public void LExp.collectInfo(Collection c,AnalysisType cType){
 		/*LExp:Expression 		::= LabelAST:Label Expression;*/
 		getExpression().collectInfo(c,cType);
 		switch (cType.getValue())
@@ -190,19 +190,19 @@ aspect CollectInfo {
 			}
 		}
 	}
-	public void AExp.collectInfo(Collection c,InfoType cType){
+	public void AExp.collectInfo(Collection c,AnalysisType cType){
 		/*AExp:Expression 		::= Left:Expression Op:Op_a Right:Expression;*/
 		getLeft().collectInfo(c,cType);
 		getOp().collectInfo(c,cType);
 		getRight().collectInfo(c,cType);
 	}
-	public void RExp.collectInfo(Collection c,InfoType cType){
+	public void RExp.collectInfo(Collection c,AnalysisType cType){
 		/*RExp:Expression 		::= Left:Expression Op:Op_r Right:Expression;*/
 		getLeft().collectInfo(c,cType);
 		getOp().collectInfo(c,cType);
 		getRight().collectInfo(c,cType);
 	}
-	public void BExp.collectInfo(Collection c,InfoType cType){
+	public void BExp.collectInfo(Collection c,AnalysisType cType){
 		/*BExp:Expression 		::= Left:Expression Op:Op_b Right:Expression;*/
 		getLeft().collectInfo(c,cType);
 		getOp().collectInfo(c,cType);
@@ -212,28 +212,28 @@ aspect CollectInfo {
 	/*
 	 *Define Op collectInfo function
 	 */
-	abstract void Op.collectInfo(Collection c,InfoType cType); /*abstract Op ::= <Contents>;*/
-	public void Op_b.collectInfo(Collection c,InfoType cType){
+	abstract void Op.collectInfo(Collection c,AnalysisType cType); /*abstract Op ::= <Contents>;*/
+	public void Op_b.collectInfo(Collection c,AnalysisType cType){
 		/*Op_b : Op;*/
 	}
-	public void Op_r.collectInfo(Collection c,InfoType cType){
+	public void Op_r.collectInfo(Collection c,AnalysisType cType){
 		/*Op_r : Op;*/
 	}
-	public void Op_a.collectInfo(Collection c,InfoType cType){
+	public void Op_a.collectInfo(Collection c,AnalysisType cType){
 		/*Op_a : Op;*/
 	}
 	
 	/*
 	 *Define Label collectInfo function
 	 */
-	abstract void Label.collectInfo(Collection c,InfoType cType); /*abstract Label;;*/
-	public void VarType.collectInfo(Collection c,InfoType cType){
+	abstract void Label.collectInfo(Collection c,AnalysisType cType); /*abstract Label;;*/
+	public void VarType.collectInfo(Collection c,AnalysisType cType){
 		/*VarType:Label  	::= <KeyWord>;*/
 	}
-	public void NumLabel.collectInfo(Collection c,InfoType cType){
+	public void NumLabel.collectInfo(Collection c,AnalysisType cType){
 		/*NumLabel:Label 	::= <Num>;*/
 	}
-	public void ClassProp.collectInfo(Collection c,InfoType cType){
+	public void ClassProp.collectInfo(Collection c,AnalysisType cType){
 		/*ClassProp:Label  	::= <KeyWord>;*/
 	}
 }

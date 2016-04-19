@@ -1,16 +1,14 @@
 public Class test7{
-		x = 7+9;
-		while(x>y)
-		{
-			y = 8+9;
-		}
-		
-		if(z>9)
-		{
-			z = a+c;
-		}
-		else
-		{
-			w = 7-10;
-		}
+	x =2;
+	y = 4;
+	x =1;
+	if(y>x)
+	{
+		z = y;
+	}
+	else
+	{
+		z = y*y;
+	}
+	x = z;
 }
