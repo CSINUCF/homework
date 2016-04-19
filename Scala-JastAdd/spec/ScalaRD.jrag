@@ -116,6 +116,9 @@ aspect RD {
     
     /**Print the entry and exit information of Reaching Definition*/
 	public void BlockCell.printRD(StringBuilder sb, int t){
+		sb.append("\n").append(getIndent(t)).append("***************************************************").append("\n");
+		this.printStateLabel(sb,t);
+		this.printInOutLabels(sb,t);
 		NumLabel l = getLabelAST();
 		sb.append("\n").append(getIndent(t)).append("RDentry("+l.getNum()+"): ");
 		Object[] tmp = this.RDentry().toArray();
@@ -132,7 +135,7 @@ aspect RD {
 			Map.Entry<String,NumLabel> res = (Map.Entry<String,NumLabel>)tmp[j];
 			sb.append("("+res.getKey()+","+res.getValue().getNum()+") ");
 		}
-		
+		sb.append("\n").append(getIndent(t)).append("***************************************************").append("\n");
     }
 
 }

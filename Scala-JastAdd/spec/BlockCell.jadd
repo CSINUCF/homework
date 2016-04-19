@@ -47,25 +47,19 @@ aspect BlockCell {
 	eq VarDef.getLabelAST().itsBlockCell() = this;
 	eq LExp.getLabelAST().itsBlockCell() = this;
 	
-	/**Print current block RDentry and RDexit information*/
+	/**Print current block data flow information*/
 	public void BlockCell.printAnalysis(StringBuilder sb, int t){
-		if(sb.toString().contains("Normal Analysis") == false){
-			sb.append("\n").append(getIndent(t)).append("***************************************************").append("\n");
-			this.printStateLabel(sb,t);
-			this.printInOutLabels(sb,t);
-			if(sb.toString().contains("Available Expressions Analysis")){
-				this.printAE(sb,t);
-			}
-			if(sb.toString().contains("Reaching Definitions Analysis")){
-				this.printRD(sb,t);
-			}
-			if(sb.toString().contains("VeryBusy Expressions Analysis")){
-				this.printVB(sb,t);
-			}
-			if(sb.toString().contains("Live Variables Analysis")){
-				this.printLV(sb,t);
-			}
-			sb.append("\n").append(getIndent(t)).append("***************************************************").append("\n");
+		if(sb.toString().contains("Available Expressions Analysis")){
+			this.printAE(sb,t);
+		}
+		if(sb.toString().contains("Reaching Definitions Analysis")){
+			this.printRD(sb,t);
+		}
+		if(sb.toString().contains("VeryBusy Expressions Analysis")){
+			this.printVB(sb,t);
+		}
+		if(sb.toString().contains("Live Variables Analysis")){
+			this.printLV(sb,t);
 		}
 	}
 }

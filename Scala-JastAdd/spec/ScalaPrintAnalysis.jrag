@@ -11,10 +11,6 @@ aspect ScalaPrintAnalysis{
 		/*Program ::= Member:Class*;*/
 		StringBuilder sb = new StringBuilder();
 		switch(aType.getValue()){
-			case 0:
-			{
-				sb.append("Normal Analysis");	
-			}break;
 			case 1:
 			{
 				sb.append("Available Expressions Analysis");
@@ -33,12 +29,12 @@ aspect ScalaPrintAnalysis{
 			}break;
 			default :
 			{
-				sb.append("Normal Analysis");		
+				sb.append("Normal Analysis");
 			}
 		}
 		sb.append("\n");
 		for(Class m : getMemberList()){
-			m.prettyPrint(sb, 0);
+			m.unParse(sb, 0);
 			sb.append("\n");
 		}
 		System.out.println("############The data flow analysis result:\n"+sb.toString());

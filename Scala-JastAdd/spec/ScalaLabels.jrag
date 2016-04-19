@@ -177,12 +177,12 @@ aspect ScalaLabels {
 		NumLabel init = this.init();
 		Set<NumLabel> finalsL = this.finals();
 		Iterator<NumLabel> it = finalsL.iterator();
-		String finalLabel = "Final: ";
+		String finalLabel = ", Final:";
 		while(it.hasNext()){
 			finalLabel +=" " + it.next().getNum();
 		}
-		String ret = "Init: "+init.getNum()+"\t"+finalLabel;
-		sb.append(getIndent(t)).append(ret);
+		String ret = "Init: "+init.getNum()+finalLabel;
+		sb.append(getIndent(t)).append(ret).append(",");
 		return true;
 	}
 	

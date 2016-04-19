@@ -103,6 +103,10 @@ aspect AE {
 	
 	/**Print the entry and exit information*/
 	public void BlockCell.printAE(StringBuilder sb, int t){
+		sb.append("\n").append(getIndent(t)).append("***************************************************").append("\n");
+		this.printStateLabel(sb,t);
+		this.printInOutLabels(sb,t);
+		
 		NumLabel l = getLabelAST();
 		sb.append("\n").append(getIndent(t)).append("AEentry("+l.getNum()+"): ");
 		Object[] tmp = this.AEentry().toArray();
@@ -120,6 +124,7 @@ aspect AE {
 			Expression res = (Expression)tmp[i];
 			sb.append("("+res.unParse()+") ");
 		}
+		sb.append("\n").append(getIndent(t)).append("***************************************************").append("\n");
 			
 	}
 		

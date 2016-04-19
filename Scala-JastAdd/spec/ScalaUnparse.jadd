@@ -101,16 +101,15 @@ aspect ScalaUnparse {
 
 	public void AssignS.unParse(StringBuilder sb, int t){
 		/*AssignS:Blockstmt 	::= LabelAST:Label <VarName:String> Expression;*/
-		sb.append(getIndent(t)).append(getVarName()).append(getOpType());
+		sb.append(getIndent(t)).append(getVarName()).append(" "+getOpType()+" ");
 		getExpression().unParse(sb,0);
 		sb.append(";");
-		
+		this.printAnalysis(sb,t);
 	}
 	public void IfS.unParse(StringBuilder sb, int t){
 		/*IfS:Blockstmt 		::= ConditionExp:LExp B1:Block B2:Block;*/
-		sb.append(getIndent(t)).append("if(");
-		getConditionExp().unParse(sb,0);
-		sb.append(")");
+		sb.append(getIndent(t)).append("if ");
+		getConditionExp().unParse(sb,t);
 		sb.append("\n").append(getIndent(t));
 		getB1().unParse(sb,t);
 		sb.append("\n").append(getIndent(t)).append("else");
@@ -118,9 +117,8 @@ aspect ScalaUnparse {
 	}
 	public void WhileS.unParse(StringBuilder sb, int t){
 		/*WhileS:Blockstmt 	::= ConditionExp:LExp Block;*/
-		sb.append(getIndent(t)).append("while(");
-		getConditionExp().unParse(sb,0);
-		sb.append(")");
+		sb.append(getIndent(t)).append("while");
+		getConditionExp().unParse(sb,t);
 		sb.append("\n").append(getIndent(t));
 		getBlock().unParse(sb,t);
 	}
@@ -135,6 +133,7 @@ aspect ScalaUnparse {
 		sb.append(":");
 		getType().unParse(sb,0);
 		sb.append(";");
+		this.printAnalysis(sb,t);
 		
 	}
 	public void VarDef.unParse(StringBuilder sb, int t){
@@ -147,6 +146,7 @@ aspect ScalaUnparse {
 		sb.append(" = ");
 		getExpression().unParse(sb,0);
 		sb.append(";");
+		this.printAnalysis(sb,t);
 		
 	}
 	
@@ -175,7 +175,7 @@ aspect ScalaUnparse {
 	}
 	public void LExp.unParse(StringBuilder sb, int t){
 		/*LExp:Expression 		::= LabelAST:Label Expression;*/
-		sb.append(getIndent(t));
+		sb.append(getIndent(0));
 		if(getExpression().getClass().getName().equals("AST.AExp")||
 				getExpression().getClass().getName().equals("AST.RExp")||
 				getExpression().getClass().getName().equals("AST.BExp")||
@@ -189,7 +189,7 @@ aspect ScalaUnparse {
 				getExpression().getClass().getName().equals("AST.LExp")){
 			sb.append(")");
 		}
-		
+		this.printAnalysis(sb,t);
 		
 	}
 	public void AExp.unParse(StringBuilder sb, int t){

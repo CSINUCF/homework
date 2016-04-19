@@ -261,19 +261,20 @@ aspect ScalaCFlows {
 	
 	/**Print in/out flow information of a lexp expression*/
 	public void LExp.printInOutLabels(StringBuilder sb, int t){
-		sb.append(" ").append(getIndent(t+1)).append("inFlows: ");
+		sb.append(" ").append(getIndent(0)).append("inFlows: ");
 		Set<NumLabel> tmp = this.inFlows();
 		Iterator<NumLabel> it = tmp.iterator();
 		while(it.hasNext())
 		{
 			sb.append(it.next().getNum()).append(" ");
 		}
-		sb.append(" outFlows: ");
+		sb.append(", outFlows: ");
 		tmp = this.outFlows();
 		it = tmp.iterator();
 		while(it.hasNext())
 		{
 			sb.append(it.next().getNum()).append(" ");
 		}
+		sb.append(",");
 	}
 }

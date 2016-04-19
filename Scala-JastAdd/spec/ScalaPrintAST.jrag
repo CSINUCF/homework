@@ -102,12 +102,20 @@ aspect ScalaPrintAST {
 		/*AssignS:Blockstmt 	::= LabelAST:Label <VarName:String> Expression;*/
 		sb.append(getIndent(t)).append("AssignS:{");
 		getLabelAST().prettyPrint(sb,0);
-		sb.append(", ");
-		sb.append("VarName:").append(getVarName());
-		sb.append(", OpType:");
-		sb.append(getOpType());
-		sb.append(", ");
-		getExpression().prettyPrint(sb,0);
+		sb.append(", ={");
+		
+		sb.append("VarName:").append(getVarName()).append(",");
+		
+		if(!getOpType().equals("=")){
+			sb.append(getOpType().replace("=","")).append("{");
+			sb.append(getVarName()).append(",");
+			getExpression().prettyPrint(sb,0);
+			sb.append("}");
+		}else{
+			getExpression().prettyPrint(sb,0);
+		}
+		sb.append("}");
+		
 		sb.append("}");
 		sb.append("\n");
 		this.printAnalysis(sb,t);

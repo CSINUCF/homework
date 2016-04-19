@@ -52,6 +52,9 @@ aspect LV {
 	}
 	/**Print the entry and exit information*/
 	public void BlockCell.printLV(StringBuilder sb, int t){
+		sb.append("\n").append(getIndent(t)).append("***************************************************").append("\n");
+		this.printStateLabel(sb,t);
+		this.printInOutLabels(sb,t);
 		NumLabel l = getLabelAST();
 		sb.append("\n").append(getIndent(t)).append("LVentry("+l.getNum()+"): ");
 		Object[] tmp = this.LVentry().toArray();
@@ -69,7 +72,7 @@ aspect LV {
 			String res = (String)tmp[i];
 			sb.append("("+res+") ");
 		}
-			
+		sb.append("\n").append(getIndent(t)).append("***************************************************").append("\n");	
 	}
 	
 }
