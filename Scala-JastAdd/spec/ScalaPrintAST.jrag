@@ -11,6 +11,7 @@ aspect ScalaPrintAST {
 	public void Program.printAST(){
 		/*Program ::= Member:Class*;*/
 		StringBuilder sb = new StringBuilder();
+		sb.append("Normal Analysis").append("\n");
 		for(Class m : getMemberList()){
 			m.prettyPrint(sb, 0);
 			sb.append("\n");

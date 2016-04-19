@@ -1,6 +1,7 @@
 package tests;
 import junit.framework.TestCase;
 import AST.*;
+import utility.AnalysisType;
 
 public class ScalaRDTest extends TestCase {
 
@@ -12,6 +13,6 @@ public class ScalaRDTest extends TestCase {
 	}
 	
 	public void runPreErrorCheck(Program p) {
-		p.printAnalysisResult();
+		p.printAnalysisResult(AnalysisType.RD);
 	}
 }
