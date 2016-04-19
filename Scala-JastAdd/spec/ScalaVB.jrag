@@ -41,20 +41,23 @@ aspect ScalaVB {
 	eq VarDecl.genVB() = new HashSet<Expression>();
 	eq LExp.genVB() = this.Aexps();
 	
-	/** Compute the exit information for the VB analysis. */
+	/** Compute the exit information for the VB analysis. */	
 	syn Set<Expression> BlockCell.VBexit() circular [AexpStar()];
     eq BlockCell.VBexit() {
-		Set<Expression> ret = new HashSet<Expression>();
+		Set<Expression> ret = new HashSet<Expression>(); // a fresh set!
 		if (!progFinals().contains(getLabelAST())) {
-		   Set<Expression> out = new HashSet<Expression>();
+		   boolean started = false;
 		   for (NumLabel lab : this.outFlows()) {
-		       out.addAll(lab.itsBlockCell().VBentry());
-		   }
-		   ret.retainAll(out);
+		       if (!started) {
+		           	ret.addAll(lab.itsBlockCell().VBentry());
+			   		started = true;
+		       } else {
+		           	ret.retainAll(lab.itsBlockCell().VBentry());
+		       }
+           }
 		}
 		return ret;
 	}
-	
 	/** Compute the entry information for the VB analysis. */
 	syn Set<Expression> BlockCell.VBentry() circular [AexpStar()];
     eq BlockCell.VBentry() {

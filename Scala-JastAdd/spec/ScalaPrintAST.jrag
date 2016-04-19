@@ -189,7 +189,7 @@ aspect ScalaPrintAST {
 	}
 	public void LExp.prettyPrint(StringBuilder sb, int t){
 		/*LExp:Expression 		::= LabelAST:Label Expression;*/
-		sb.append(getIndent(t)).append("LExp:{");
+		sb.append(getIndent(0)).append("LExp:{");
 		getLabelAST().prettyPrint(sb,0);
 		sb.append(", ");
 		getExpression().prettyPrint(sb,0);
