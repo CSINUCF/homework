@@ -9,14 +9,9 @@ aspect GAttributes {
 	 * can get specific value from their root parent.
 	 * More details about AST hierarchy please see ScalaCFlows.jrag
 	 */
+	 
+	 
 	/**Broadcast progLabels (Lab*) to all children in a program*/
-	/*	
-	eq IfS.getConditionExp().progLabels() = this.labels();
-	eq WhileS.getConditionExp().progLabels() = this.labels();
-	eq AssignS.getExpression().progLabels() = this.labels();
-	eq VarDef.getExpression().progLabels() = this.labels();
-	eq Block.getBlockS(int i).progLabels() = this.labels();
-	*/
 	eq Properties.getPropS(int i).progLabels() = this.labels();
 	eq Mbody.getBody(int i).progLabels() = this.labels();
 	eq FParam.getParam(int i).progLabels() = this.labels();

@@ -1,6 +1,6 @@
 /**
  *@author Bing
- * Tranverse AST to gather the basic block info
+ * transverse  AST to gather the basic block info
  */
 aspect ScalaBlock{
 		public void Program.printBlocks(){
