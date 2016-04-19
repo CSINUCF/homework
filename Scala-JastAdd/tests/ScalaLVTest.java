@@ -3,16 +3,16 @@ import junit.framework.TestCase;
 import AST.*;
 import utility.AnalysisType;
 
-public class ScalaRDTest extends TestCase {
+public class ScalaLVTest extends TestCase {
 
-	public void testScalaRDTest()
+	public void testScalaLVTest()
 	{
-		ScalaCompiler compiler = new ScalaCompiler("input/t9.txt");
+		ScalaCompiler compiler = new ScalaCompiler("input/t11.txt");
 		Program p = compiler.run();
 		runPreErrorCheck(p);
 	}
 	
 	public void runPreErrorCheck(Program p) {
-		p.printAnalysisResult(AnalysisType.RD);
+		p.printAnalysisResult(AnalysisType.LV);
 	}
 }

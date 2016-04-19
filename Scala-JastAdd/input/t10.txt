@@ -1,0 +1,12 @@
+public Class test7{
+	if(a>b)
+	{
+		x = b-a;
+		y = a-b;
+	}
+	else
+	{
+		y = b-a;
+		x = a-b;
+	}
+}
