@@ -21,7 +21,10 @@ aspect AE {
 			}
 		}
 		if(!getOpType().equals("=")){
-    		/**x +=6; ==> x = x+6*/
+    		/**
+    		 *if this assignment is combound assignment, for example "x +=6; ==> x = x+6"
+    		 *In this situation, we should add expression "x+6" to the set.
+    		 */
     		Expression tmp = new AExp(new VarRefExp(getVarName()),
     								  new Op_a(getOpType().replace("=","")),
     								  getExpression());

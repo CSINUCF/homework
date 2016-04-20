@@ -32,11 +32,15 @@
 
 %goal goal;
 
+/*define a program goal*/
 Program goal = classList   			 {: return new Program(classList);	:};
+
+/*a list of class*/
 List classList =
     	mem                          {: return new List().add(mem); :}
   	| 	classList  mem  		  	 {: return classList.add(mem); :}
-  	; 
+  	;
+/**define various formats of a class*/
 Class mem = 
 		classType CLASS   IDENTIFIER.className LBRACE RBRACE 					{: return new Class(classType,className,null,null); :}		
 	|	classType CLASS   IDENTIFIER.className LBRACE propList RBRACE 			{: return new Class(classType,className,propList,null); :}
@@ -47,56 +51,66 @@ Class mem =
 	|	classType OBJECT  IDENTIFIER.className LBRACE funcList RBRACE 			{: return new Class(classType,className,null,funcList); :}
 	|	classType OBJECT  IDENTIFIER.className LBRACE propList funcList RBRACE 	{: return new Class(classType,className,propList,funcList); :}
 	;
-
+/**Use the Properties list to represent the fields of a class*/
 Properties propList = 
 		blockStmtList 	{:	return new Properties(blockStmtList);	:}	
 	;
-
+/*the list of methods*/
 Methods funcList = 
 		fList 			{:	return new Methods(fList);	:}
 	;
-
+/*the list of functions*/
 List fList =
     	func                          	{: return new List().add(func); :}
   	| 	fList  func  		  	   		{: return fList.add(func); :}
-  	; 
+  	;
+/*
+ *Define various format of a function
+ *def f(var x:Int):Int {x=3;}
+ *def f(var x:Int) {x=3;}
+ */  	
 Function func = 
-		/*def f(var x:Int):Int {x=3;} */
 	    DEF IDENTIFIER.funName LPAREN params RPAREN COLON varType.returnType LBRACE bodyList.b RBRACE {: return new Function(funName,params,returnType,b); :}
 	|   DEF IDENTIFIER.funName LPAREN params RPAREN  LBRACE bodyList.b RBRACE {: return new Function(funName,params,null,b); :}
 	;
-
+/*the list of formal parameters*/
 FParam params = 
 		paramList 		{:	return new FParam(paramList);	:}
 	|					{:	return null;	:}	
 	;
-
 List paramList =
     	param                          		{: return new List().add(param); :}
   	| 	paramList COMMA param  		  	   	{: return paramList.add(param); :}
   	; 
- 	
-VarDecl param = 	
-		VAR IDENTIFIER COLON varType.type					{:	return new VarDecl(new NumLabel(LabelUtility.nextLabel()),VAR,IDENTIFIER,type);	:}/*Declare a variable as var*/
-	|	VAL IDENTIFIER COLON varType.type					{:	return new VarDecl(new NumLabel(LabelUtility.nextLabel()),VAL,IDENTIFIER,type);	:}/*Declare a variable as val*/
-	|	IDENTIFIER COLON varType.type						{:	return new VarDecl(new NumLabel(LabelUtility.nextLabel()),null,IDENTIFIER,type);	:}/*Declare a variable as val*/
+/*define a formal parameter with different formats*/
+VarDecl param =
+		VAR IDENTIFIER COLON varType.type					{:	return new VarDecl(new NumLabel(LabelUtility.nextLabel()),VAR,IDENTIFIER,type);	 :}	/*Declare a variable as var*/
+	|	VAL IDENTIFIER COLON varType.type					{:	return new VarDecl(new NumLabel(LabelUtility.nextLabel()),VAL,IDENTIFIER,type);	 :}	/*Declare a variable as val*/
+	|	IDENTIFIER COLON varType.type						{:	return new VarDecl(new NumLabel(LabelUtility.nextLabel()),null,IDENTIFIER,type); :} /*Declare a variable as val*/
 	;
-
+/*define main body of a function*/
 Mbody bodyList = 
 		blockStmtList 	{:	return new Mbody(blockStmtList);	:}
 	|					{:	return null;	:}	
 	;
-	
+/*Define a block which contains a lot of statements*/	
 Block block = 
 		LBRACE blockStmtList RBRACE {: return new Block(blockStmtList); :}
   	|	LBRACE	RBRACE				{: return null;		:}
-  	;
+  	;  	
 List blockStmtList =
     	stmt                          		{: return new List().add(stmt); :}
   	| 	blockStmtList stmt  		  	{: return blockStmtList.add(stmt); :}
   	;
   	
- /*a block of statements, which consist of assignment, ifelse, while vardecl and vardef statement*/ 	
+ /*
+  *a block of statements, which consist of:
+  ***assignment statement,
+  ***ifelse statement,
+  ***while statement,
+  ***vardecl statement,
+  ***vardef statement
+  */ 	
 Blockstmt stmt = 
 		assigns.a		{:	return a;	:}
 	|	ifs.i			{:	return i;	:}
@@ -104,7 +118,8 @@ Blockstmt stmt =
 	|	vardecl.l		{:	return l;	:}
 	|	vardef.f		{:	return f;	:}
 	;
-/*Assignment statement*/
+
+/*Various format assignment statement*/
 AssignS	assigns = 	
 		IDENTIFIER EQ expression.e SEMICOLON				{: return new AssignS(new NumLabel(LabelUtility.nextLabel()),IDENTIFIER, EQ,e); :} 			/* x = expression*/
 	|	IDENTIFIER PLUSEQ expression.e SEMICOLON			{: return new AssignS(new NumLabel(LabelUtility.nextLabel()),IDENTIFIER, PLUSEQ,e); :}		/* x += expression*/ 
@@ -121,19 +136,25 @@ AssignS	assigns =
 	;
 /*if else statement*/
 IfS	ifs = IF LPAREN condition.c RPAREN block.b1 ELSE block.b2			{:	return new IfS(c,b1,b2);	:}; /* if(){} else{} */ 
+
 /*while statement*/	
 WhileS whiles = WHILE LPAREN condition.c RPAREN block.b	{:	return new WhileS(c,b);	:} ;
+
 /*declare a variable*/	
 VarDecl vardecl = 	
 		VAR IDENTIFIER COLON varType.type SEMICOLON					{:	return new VarDecl(new NumLabel(LabelUtility.nextLabel()),VAR,IDENTIFIER,type);	:}/*Declare a variable as var*/
 	|	VAL IDENTIFIER COLON varType.type SEMICOLON					{:	return new VarDecl(new NumLabel(LabelUtility.nextLabel()),VAL,IDENTIFIER,type);	:}/*Declare a variable as val*/
 	;
+	
 /*define a variable*/	
 VarDef	vardef = 	
 		VAR IDENTIFIER COLON varType.type EQ expression.e SEMICOLON 	{:	return new VarDef (new NumLabel(LabelUtility.nextLabel()),VAR,IDENTIFIER,type,e);	:} /*Define a variable*/
 	|	VAL IDENTIFIER COLON varType.type EQ expression.e SEMICOLON 	{:	return new VarDef (new NumLabel(LabelUtility.nextLabel()),VAL,IDENTIFIER,type,e);	:} /*Define a variable*/
-	;	
-/*Type info of a variable*/
+	;
+	
+/**
+ *The type info of a variable or a function return type
+ */
 VarType varType = 
 		BYTE					{: return new VarType(BYTE); :}
 	|	INT						{: return new VarType(INT); :}
@@ -151,7 +172,9 @@ VarType varType =
 	|	ANYREF					{: return new VarType(ANYREF); :}
 	;
 
-/* Access modifiers (public, private, protected,abstract,case)*/
+/* Access modifiers of a class
+ * (public, private, protected,abstract,case)
+ */
 ClassProp classType = 
 		ABSTRACT			{: return new ClassProp(ABSTRACT); :}
 	|	PUBLIC				{: return new ClassProp(PUBLIC); :}
@@ -160,6 +183,7 @@ ClassProp classType =
 	|	CASE				{: return new ClassProp(CASE); :}	
 	;
 
+/*basical expression*/
 Expression primary = 
 		IDENTIFIER					{:	return new VarRefExp(IDENTIFIER);	:}
 	|	NUMBER						{:	return new NumLitExp(NUMBER);	:}
@@ -169,6 +193,7 @@ Expression primary =
 	|	NOT primary.e				{:	return new NotExp(e);	:}
 	;
 
+/**arithmetic expression*/
 Expression aExp	=
 		primary.f						{:	return f;	:}
 	|	aExp.l	PLUS	primary.r		{:	return new AExp(l,new Op_a(PLUS),r);	:} 		//"+"
@@ -180,6 +205,8 @@ Expression aExp	=
 	|	aExp.l	RSHIFT	primary.r		{:	return new AExp(l,new Op_a(RSHIFT),r);	:}		//">>"
 	|	aExp.l	URSHIFT	primary.r		{:	return new AExp(l,new Op_a(URSHIFT),r);	:}		//">>>"	
 	;
+
+/**Relational expressions*/	
 Expression rExp = 
 		aExp.f						{:	return f;	:}
 	|	rExp.l GT aExp.r			{:	return new RExp(l,new Op_r(GT),r);	:}		//">"
@@ -195,6 +222,7 @@ Expression rExp =
 	|	rExp.l OROR aExp.r			{:	return new RExp(l,new Op_r(OROR),r);	:}	//"||"
 	;
 
+/**Boolean expressions*/
 Expression bExp = 
 		rExp.f						{:	return f;	:}
 	|	bExp.l OR rExp.r			{:	return new BExp(l,new Op_b(OR),r);	:}	//"|"

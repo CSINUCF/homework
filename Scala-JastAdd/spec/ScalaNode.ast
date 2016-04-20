@@ -1,12 +1,30 @@
-Program ::= Member:Class*;
+Program ::= Member:Class*; /*a  program may consist of many classes*/
+/**
+ * a class consist of two parts
+ *** Filed: Using "Properties" keyword to represent fileds of a class
+ *** Method: Using "Methods" kewword to represent methods of a class
+ */
 Class ::= ClassType:ClassProp <ClassName:String> Properties Methods;	
 
+/**
+ * Properties consist of a  series of Blockstmts;
+ */
 Properties ::= PropS:Blockstmt*;
+
+/**There are a lot of functions which we call method in this project in a scala class*/
 Methods  ::= Funcs:Function*;
 
+/**
+ * A function format: 
+ *funcName(formal parameter...):ReturnType {
+ *	body of a function 				
+ *}
+ */
 Function ::= <FuncName:String> FParam ReturnType:VarType Mbody;
 
 FParam ::= Param:VarDecl*;
+
+/*a main body of a function consist of a series of Blockstmt*/
 Mbody ::= Body:Blockstmt*;
 
 /*Define a set of Statements as a program block*/
@@ -46,6 +64,14 @@ BExp:Expression 		::= Left:Expression Op:Op_b Right:Expression; /*Boolean expres
 
 
 abstract Label;
-VarType:Label  	::= <KeyWord>; /*Variable type info*/
-ClassProp:Label ::= <KeyWord>; /*Class Property*/
-NumLabel:Label 	::= <Num>; /*Label System to identify a statement*/
+
+/*Identify the type info of variables, rather than label any statement
+ *it is easier to encode parse specification
+ */
+VarType:Label  	::= <KeyWord>;
+
+/*Identify the access modifiers of a class, rather than label a class*/
+ClassProp:Label ::= <KeyWord>;
+
+/*Label System to identify a statement to use represent the flow of a program*/
+NumLabel:Label 	::= <Num>;
