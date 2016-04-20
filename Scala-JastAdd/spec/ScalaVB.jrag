@@ -15,9 +15,17 @@ aspect ScalaVB {
 		String assigned_var = getVarName();
 		for (Expression exp : current)
 		{
-			if (exp.FV().containsKey(assigned_var)) 
+			if (exp.FV().containsKey(assigned_var)){
 				ret.add(exp);
+			}	
 		}
+		if(!getOpType().equals("=")){
+    		/**x +=6; ==> x = x+6*/
+    		Expression tmp = new AExp(new VarRefExp(getVarName()),
+    								  new Op_a(getOpType().replace("=","")),
+    								  getExpression());
+    		ret.add(tmp);
+    	}
 		return ret;
 	}
     eq VarDef.killVB(Set<Expression> current) {
@@ -35,7 +43,17 @@ aspect ScalaVB {
   
 	/** The gen function for very busy expressions. */
 	syn Set<Expression> BlockCell.genVB();
-	eq AssignS.genVB() = getExpression().Aexps();
+	eq AssignS.genVB(){
+		Set<Expression> ret = getExpression().Aexps();
+		if(!getOpType().equals("=")){
+    		/**x +=6; ==> x = x+6*/
+    		Expression tmp = new AExp(new VarRefExp(getVarName()),
+    								  new Op_a(getOpType().replace("=","")),
+    								  getExpression());
+    		ret.add(tmp);
+    	}
+    	return ret;
+	}
 	
 	eq VarDef.genVB() = getExpression().Aexps();
 	eq VarDecl.genVB() = new HashSet<Expression>();

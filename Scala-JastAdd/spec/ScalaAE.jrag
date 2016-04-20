@@ -20,6 +20,13 @@ aspect AE {
 				ret.add(exp);
 			}
 		}
+		if(!getOpType().equals("=")){
+    		/**x +=6; ==> x = x+6*/
+    		Expression tmp = new AExp(new VarRefExp(getVarName()),
+    								  new Op_a(getOpType().replace("=","")),
+    								  getExpression());
+    		ret.add(tmp);
+    	}
 		return ret;
 	}
 	eq VarDef.killAE(Set<Expression> current) {

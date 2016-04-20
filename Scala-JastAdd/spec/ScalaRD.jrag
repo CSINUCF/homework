@@ -7,9 +7,7 @@ import AST.*;
  * 
  *  Ref. Principles of Program Analysis, section 2.1.1. Nielsen, Nielsen, and Hankin
  */
-
-
-
+ 
 aspect RD {
 	/** The kill function for reaching definitions. */
 	syn Set<Map.Entry<String,NumLabel>> BlockCell.killRD();
@@ -52,14 +50,12 @@ aspect RD {
 	syn Set<Map.Entry<String,NumLabel>> BlockCell.genRD();
 	eq AssignS.genRD()
 	{
-		
 		Set<Map.Entry<String,NumLabel>> ret = new HashSet<Map.Entry<String,NumLabel>>();
 		ret.add(new Pair<String,NumLabel>(getVarName(), getLabelAST()));
 		return ret;
 	}
 	eq VarDef.genRD()
 	{
-		
 		Set<Map.Entry<String,NumLabel>> ret = new HashSet<Map.Entry<String,NumLabel>>();
 		ret.add(new Pair<String,NumLabel>(getVarName(), getLabelAST()));
 		return ret;

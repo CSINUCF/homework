@@ -94,8 +94,19 @@ aspect ScalaExpr {
     	return ret;
     }
     syn Set<Expression> Blockstmt.Aexps();
+    
     //AssignS:Blockstmt 	::= LabelAST:NumLabel <VarName:String> Expression;
-    eq AssignS.Aexps() = getExpression().Aexps();
+    eq AssignS.Aexps() {
+    	Set<Expression> ret = getExpression().Aexps();
+    	if(!getOpType().equals("=")){
+    		/**x +=6; ==> x = x+6*/
+    		Expression tmp = new AExp(new VarRefExp(getVarName()),
+    								  new Op_a(getOpType().replace("=","")),
+    								  getExpression());
+    		ret.add(tmp);
+    	}
+    	return ret;
+    }
     eq IfS.Aexps() {
     	//IfS:Blockstmt 		::= ConditionExp:LExp B1:Block B2:Block;
           Set<Expression> ret = getConditionExp().Aexps();

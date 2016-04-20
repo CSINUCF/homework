@@ -2,6 +2,7 @@ public Class test7{
 	x = 2;
 	y = 4;
 	x = 1;
+	w += 3;
 	if(y>x)
 	{
 		z = y;

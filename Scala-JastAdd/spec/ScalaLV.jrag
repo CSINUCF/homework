@@ -21,7 +21,14 @@ aspect LV {
 	
 	/** The gen function for live variables. */
 	syn Set<String> BlockCell.genLV();
-	eq AssignS.genLV() = getExpression().FV().keySet();
+	eq AssignS.genLV() {
+		Set<String> ret = new HashSet<String>();
+		ret.addAll(getExpression().FV().keySet());
+		if(!getOpType().equals("=")){
+			ret.add(getVarName());
+		}
+		return ret;
+	}
 	eq VarDef.genLV() = getExpression().FV().keySet();
 	eq VarDecl.genLV() = FV().keySet();
 	eq LExp.genLV() = FV().keySet();
