@@ -7,7 +7,7 @@ public class ScalaLVTest extends TestCase {
 
 	public void testScalaLVTest()
 	{
-		ScalaCompiler compiler = new ScalaCompiler("input/t11.txt");
+		ScalaCompiler compiler = new ScalaCompiler("input/t1.txt");
 		Program p = compiler.run();
 		runPreErrorCheck(p);
 	}

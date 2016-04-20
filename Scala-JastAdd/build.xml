@@ -80,7 +80,7 @@
 
   <!-- Remove generated source files -->
   <target name="cleanGen">
-    <delete dir="${package}"/>
+  	<delete dir="${package}"/>
     <delete dir="${test-reports.dir}"/>
   	<delete dir="${document}"/>
   </target>
