@@ -1,7 +1,6 @@
 Scala JastADD Description
 ========================
-@Bingbing Rao  
-Robin.Rao@knights.ucf.edu
+@Bingbing Rao     Robin.Rao@knights.ucf.edu
 
 This is an implementation of Scala program language based on JastAdd tools.
 
