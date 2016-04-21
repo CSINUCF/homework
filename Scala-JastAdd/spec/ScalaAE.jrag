@@ -86,7 +86,6 @@ aspect AE {
 		if (getLabelAST().equals(progInitLabel())) {
 			ret = new HashSet<Expression>();
 		} else {
-		
 			Set<Set<Expression>> inputs = SetRepUtility.map(
 				new SetRepUtility.Fun<NumLabel, Set<Expression>>() {
 					public Set<Expression> run(NumLabel l) {
@@ -113,12 +112,12 @@ aspect AE {
 	
 	/**Print the entry and exit information*/
 	public void BlockCell.printAE(StringBuilder sb, int t){
-		sb.append("\n").append(getIndent(t)).append("***************************************************").append("\n");
-		this.printStateLabel(sb,t);
-		this.printInOutLabels(sb,t);
+		//sb.append("\n").append(getIndent(t)).append("***************************************************").append("\n");
+		//this.printStateLabel(sb,t);
+		//this.printInOutLabels(sb,t);
 		
 		NumLabel l = getLabelAST();
-		sb.append("\n").append(getIndent(t)).append("AEentry("+l.getNum()+"): ");
+		sb.append(" ").append(getIndent(0)).append("AEentry("+l.getNum()+"): ");
 		Object[] tmp = this.AEentry().toArray();
 		for(int i=0;i<tmp.length;i++)
 		{
@@ -134,7 +133,7 @@ aspect AE {
 			Expression res = (Expression)tmp[i];
 			sb.append("("+res.unParse()+") ");
 		}
-		sb.append("\n").append(getIndent(t)).append("***************************************************").append("\n");
+		//sb.append("\n").append(getIndent(t)).append("***************************************************").append("\n");
 			
 	}
 		

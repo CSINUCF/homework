@@ -87,11 +87,11 @@ aspect ScalaVB {
 	}
 	/**Print the entry and exit information*/
 	public void BlockCell.printVB(StringBuilder sb, int t){
-		sb.append("\n").append(getIndent(t)).append("***************************************************").append("\n");
-		this.printStateLabel(sb,t);
-		this.printInOutLabels(sb,t);
+		//sb.append("\n").append(getIndent(t)).append("***************************************************").append("\n");
+		//this.printStateLabel(sb,t);
+		//this.printInOutLabels(sb,t);
 		NumLabel l = getLabelAST();
-		sb.append("\n").append(getIndent(t)).append("VBentry("+l.getNum()+"): ");
+		sb.append(" ").append(getIndent(0)).append("VBentry("+l.getNum()+"): ");
 		Object[] tmp = this.VBentry().toArray();
 		for(int i=0;i<tmp.length;i++)
 		{
@@ -107,7 +107,7 @@ aspect ScalaVB {
 			Expression res = (Expression)tmp[i];
 			sb.append("("+res.unParse()+") ");
 		}
-		sb.append("\n").append(getIndent(t)).append("***************************************************").append("\n");	
+		//sb.append("\n").append(getIndent(t)).append("***************************************************").append("\n");	
 	}
 	    
 }

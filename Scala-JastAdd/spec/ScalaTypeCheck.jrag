@@ -1,0 +1,247 @@
+/**
+ * @author Bing
+ * Collect the varialbes of the Program.
+ * Here I use  Map<String,Type> to represent the information a variable
+ * String: the name of a variable
+ * Type:   the type information of a varialbe (Type.Unknown, Type.Error, Type.Int, Type.Bool), More details in Utility.Type
+ * During collection those variables,based on the type of expressions, I do some basic type checking.
+ */
+import java.util.Set;
+import java.util.HashMap;
+import java.util.Map;
+import utility.SetRepUtility;
+import utility.Type;
+aspect ScalaTypeCheck {
+	/*
+	 * Define Statement TypeChecking Function
+	 */
+
+	public void Program.printTypeChecking()
+	{
+		Map<String,Type> res = new HashMap<String,Type>();
+		StringBuilder sb = new StringBuilder();
+		this.TypeChecking(res,sb,0);
+		
+		Iterator<Map.Entry<String, Type>> it = res.entrySet().iterator();
+		System.out.println("##############The variable info:");
+		System.out.println("\nVariable"+"\t \t"+"TypeInfo");
+		while(it.hasNext())
+		{
+			Map.Entry<String,Type> var = it.next();
+			System.out.println(var.getKey()+"\t\t-\t"+var.getValue().getName());
+		}
+		System.out.println("#############Type Checking info:"+sb.toString());
+	}
+
+
+	/*Program ::= Block;*/
+	public void Program.TypeChecking(Map<String,Type> vt, StringBuilder sb,int t) {
+		//Program ::= Member:Class*;
+		for(Class m : getMemberList()){
+			m.TypeChecking(vt,sb,t);
+		}
+	}
+	public void Class.TypeChecking(Map<String,Type> vt, StringBuilder sb,int t){
+		//Class ::= ClassType:ClassProp <ClassName:String> Properties Methods;	
+		if(getProperties() != null)
+			getProperties().TypeChecking(vt,sb,t);
+		
+		if(getMethods() != null){
+			/**Because we are focus on intraprocedural analysis rather than interprocedural analysis
+			 * so for now we will not consider the analysis of methods*/
+			//getMethods().TypeChecking(vt,sb,t);
+		}
+	}
+	public void Properties.TypeChecking(Map<String,Type> vt, StringBuilder sb,int t) {
+		//Properties ::= PropS:Blockstmt*;
+		for (Blockstmt bs : getPropSList()) {
+			bs.TypeChecking(vt,sb,t);
+		}
+	} 
+	public void Methods.TypeChecking(Map<String,Type> vt, StringBuilder sb,int t) {
+		//Methods  ::= Funcs:Function*;
+		for(Function f : getFuncsList()){
+			f.TypeChecking(vt,sb,t);
+		}
+	}
+	public void Function.TypeChecking(Map<String,Type> vt, StringBuilder sb,int t) {
+		//Function ::= <FuncName:String> FParam ReturnType:VarType Mbody;
+		if(getFParam() != null)
+			getFParam().TypeChecking(vt,sb,t);
+
+		if(getMbody() != null)
+			getMbody().TypeChecking(vt,sb,t);
+
+	}
+	public void FParam.TypeChecking(Map<String,Type> vt, StringBuilder sb,int t) {
+		//FParam ::= Param:VarDecl*;
+		/**Because the factor paramters is not as the Free variables*/
+		/*
+		for(int i=0;i<getNumParam();i++){
+			getParam(i).TypeChecking(vt,sb,t);
+		}
+		*/
+	}
+	
+	public void Mbody.TypeChecking(Map<String,Type> vt, StringBuilder sb,int t) {
+		//Mbody ::= Body:Blockstmt*;
+		for (Blockstmt bs : getBodyList()) {
+			bs.TypeChecking(vt,sb,t);
+		}
+	}
+	
+	public void Block.TypeChecking(Map<String,Type> vt, StringBuilder sb,int t) {
+		/*Block ::= BlockS:Blockstmt*;*/
+		for (Blockstmt bs : getBlockSs()) {
+			bs.TypeChecking(vt,sb,t);
+		}
+	}
+	abstract void Blockstmt.TypeChecking(Map<String,Type> vt, StringBuilder sb,int t); /*abstract Blockstmt;*/
+	public void AssignS.TypeChecking(Map<String,Type> vt, StringBuilder sb,int t){
+		/*AssignS:Blockstmt 	::= LabelAST:Label <VarName:String> Expression;*/
+		this.unParse(sb,t);
+		sb.append("\n******************************************\n");
+		
+		Type newType = getExpression().expType(vt);
+		if(vt.containsKey(getVarName()) == true){
+			Type oldType = vt.get(getVarName());
+			if(newType != oldType)
+			{
+				if(oldType == Type.Unknown)
+				{
+					vt.put(getVarName(),newType);
+				}
+				else{
+					/**if the left and right of "=" are not equal,then there is a type error*/
+					sb.append("Type.Error:"+oldType+"="+newType);
+				}
+			}
+		}else{
+			/*if the type is not in TypeChecking,and add*/
+			vt.put(getVarName(),newType);
+		}
+	}
+	public void IfS.TypeChecking(Map<String,Type> vt, StringBuilder sb,int t){
+		/*IfS:Blockstmt 		::= ConditionExp:LExp B1:Block B2:Block;*/
+		getConditionExp().TypeChecking(vt,sb,t);
+		getB1().TypeChecking(vt,sb,t);
+		getB2().TypeChecking(vt,sb,t);
+	}
+	public void WhileS.TypeChecking(Map<String,Type> vt, StringBuilder sb,int t){
+		/*WhileS:Blockstmt 	::= ConditionExp:LExp Block;*/
+		getConditionExp().TypeChecking(vt,sb,t);
+		getBlock().TypeChecking(vt,sb,t);
+	}
+	public void VarDecl.TypeChecking(Map<String,Type> vt, StringBuilder sb,int t){
+		/*VarDecl:Blockstmt 	::= LabelAST:Label <Varm> <VarName> Type:VarType;*/
+		this.unParse(sb,t);
+		String var = getVarName();
+		Type newType = Type.getType(getType().unParse());
+		if(vt.containsKey(var)){
+			/*var exist*/
+			Type oldType = vt.get(var);
+			if(((oldType == Type.Unknown)||(oldType == Type.Error))&&(newType != null))
+				vt.put(var,newType);
+			else if(oldType != newType)
+				vt.put(var,Type.Error);
+		}
+		else{
+			if(newType != null)
+				vt.put(var,newType);
+			else
+				vt.put(var,Type.Unknown);
+		}
+	}
+	public void VarDef.TypeChecking(Map<String,Type> vt, StringBuilder sb,int t){
+		/*VarDef:Blockstmt	::= LabelAST:Label <Varm> <VarName> Type:VarType Expression;*/
+		this.unParse(sb,t);
+		String var = getVarName();
+		Type newType = Type.getType(getType().unParse());
+		if(vt.containsKey(var)){
+			/*var exit*/
+			Type oldType = vt.get(var);
+			if(((oldType == Type.Unknown)||(oldType == Type.Error))&&(newType != null))
+				vt.put(var,newType);
+			else if(oldType != newType)
+				vt.put(var,Type.Error);
+		}
+		else{
+			if(newType != null)
+				vt.put(var,newType);
+			else
+				vt.put(var,Type.Unknown);
+		}
+	}
+	
+	/*
+	 * Define Expression TypeChecking Function
+	 */
+	abstract void Expression.TypeChecking(Map<String,Type> vt, StringBuilder sb,int t); /*abstract Expression;*/
+	public void VarRefExp.TypeChecking(Map<String,Type> vt, StringBuilder sb,int t){
+		/*VarRefExp:Expression 	::= <Contents>;*/
+		if(vt.containsKey(getContents())== false)
+			vt.put(getContents(),this.expType(vt));
+		return;
+	}
+	public void NumLitExp.TypeChecking(Map<String,Type> vt, StringBuilder sb,int t){
+		/*NumLitExp:Expression 	::= <Contents>;*/
+		return;
+	}
+	public void BoolLitExp.TypeChecking(Map<String,Type> vt, StringBuilder sb,int t){
+		/*BoolLitExp:Expression  	::= <Contents>;  x = true/false*/
+		return;
+	}
+	public void NotExp.TypeChecking(Map<String,Type> vt, StringBuilder sb,int t){
+		/*NotExp:Expression 		::= Expression;*/
+		getExpression().TypeChecking(vt,sb,t);
+	}
+	public void LExp.TypeChecking(Map<String,Type> vt, StringBuilder sb,int t){
+		/*LExp:Expression 		::= LabelAST:Label Expression;*/
+		getExpression().TypeChecking(vt,sb,t);
+	}
+	public void AExp.TypeChecking(Map<String,Type> vt, StringBuilder sb,int t){
+		/*AExp:Expression 		::= Left:Expression Op:Op_a Right:Expression;*/
+		getLeft().TypeChecking(vt,sb,t);
+		getOp().TypeChecking(vt,sb,t);
+		getRight().TypeChecking(vt,sb,t);
+	}
+	public void RExp.TypeChecking(Map<String,Type> vt, StringBuilder sb,int t){
+		/*RExp:Expression 		::= Left:Expression Op:Op_r Right:Expression;*/
+		getLeft().TypeChecking(vt,sb,t);
+		getOp().TypeChecking(vt,sb,t);
+		getRight().TypeChecking(vt,sb,t);
+	}
+	public void BExp.TypeChecking(Map<String,Type> vt, StringBuilder sb,int t){
+		/*BExp:Expression 		::= Left:Expression Op:Op_b Right:Expression;*/
+		getLeft().TypeChecking(vt,sb,t);
+		getOp().TypeChecking(vt,sb,t);
+		getRight().TypeChecking(vt,sb,t);
+	}
+	
+	/*
+	 *Define Op TypeChecking function
+	 *abstract Op ::= <Contents>;
+	 *Op_b : Op;
+	 *Op_r : Op;
+	 *Op_a : Op;
+	*/
+	public void Op.TypeChecking(Map<String,Type> vt, StringBuilder sb,int t){
+		return;
+	}
+	/*
+	 *Define Label TypeChecking function
+	 */
+	abstract void Label.TypeChecking(Map<String,Type> vt, StringBuilder sb,int t); /*abstract Label;;*/
+	public void VarType.TypeChecking(Map<String,Type> vt, StringBuilder sb,int t){
+		/*VarType:Label  	::= <KeyWord>;*/
+		return;
+	}
+	public void NumLabel.TypeChecking(Map<String,Type> vt, StringBuilder sb,int t){
+		/*NumLabel:Label 	::= <Num>;*/
+		return;
+	}
+	public void ClassProp.TypeChecking(Map<String,Type> vt, StringBuilder sb,int t){
+		/*ClassProp:Label  	::= <KeyWord>;*/
+		return;
+	}
+}
