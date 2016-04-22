@@ -62,6 +62,10 @@ aspect BlockCell {
 			this.printLV(sb,t);
 		}
 	}
+	/*
+	 * Reference module 
+	 * Compare with Reference module to check the type information of  the given variable 
+	 */
 	public void BlockCell.typeInference(Map<String,Type> vt,StringBuilder sb,String var,Type newType)
   	{
   		Type oldType = null;

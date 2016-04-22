@@ -2,7 +2,7 @@
  * 
  * @author Bing
  * 
- * Tranverse the AST and TypeChecking the program then print it out
+ * Tranverse the AST and Type Checking the program then print it out
  */
 import java.util.Set;
 import java.util.HashMap;
@@ -161,7 +161,7 @@ aspect ScalaTypeCheck {
 		getExpression().TypeChecking(vt,sb,0);
 		sb.append(";");
 		this.FV(vt);
-		this.typeInference(vt,sb,getVarName(),getExpression().expType(vt));
+		this.typeInference(vt,sb,getVarName(),getExpression().expType(vt)); /*define in BlockCell.jadd*/
 	}
 	
 	/*

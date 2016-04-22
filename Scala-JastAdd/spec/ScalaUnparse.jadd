@@ -104,7 +104,7 @@ aspect ScalaUnparse {
 		sb.append(getIndent(t)).append(getVarName()).append(" "+getOpType()+" ");
 		getExpression().unParse(sb,0);
 		sb.append(";");
-		this.printAnalysis(sb,t);
+		this.printAnalysis(sb,t); /*define in BlockCell.jadd*/
 	}
 	public void IfS.unParse(StringBuilder sb, int t){
 		/*IfS:Blockstmt 		::= ConditionExp:LExp B1:Block B2:Block;*/
