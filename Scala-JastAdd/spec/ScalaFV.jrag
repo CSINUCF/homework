@@ -88,18 +88,17 @@ aspect ScalaFV {
 			Type oldType = sb.get(getVarName());
 			if(newType != oldType)
 			{
-				if(oldType == Type.Unknown)
+				if((oldType == Type.Unknown)&&(newType != Type.Error))
 				{
 					sb.put(getVarName(),newType);
-				}
-				else{
-					/**if the left and right of "=" are not equal,then there is a type error*/
-					sb.put(getVarName(),Type.Error);
 				}
 			}
 		}else{
 			/*if the type is not in FV,and add*/
-			sb.put(getVarName(),newType);
+			if(newType == Type.Error)
+				sb.put(getVarName(),Type.Unknown);
+			else
+				sb.put(getVarName(),newType);
 		}
 		getExpression().FV(sb);
 	}
@@ -116,40 +115,42 @@ aspect ScalaFV {
 	}
 	public void VarDecl.FV(Map<String,Type> sb){
 		/*VarDecl:Blockstmt 	::= LabelAST:Label <Varm> <VarName> Type:VarType;*/
-		String var = getVarName();
 		Type newType = Type.getType(getType().unParse());
-		if(sb.containsKey(var)){
-			/*var exist*/
-			Type oldType = sb.get(var);
-			if(((oldType == Type.Unknown)||(oldType == Type.Error))&&(newType != null))
-				sb.put(var,newType);
-			else if(oldType != newType)
-				sb.put(var,Type.Error);
-		}
-		else{
-			if(newType != null)
-				sb.put(var,newType);
+		if(sb.containsKey(getVarName()) == true){
+			Type oldType = sb.get(getVarName());
+			if(newType != oldType)
+			{
+				if((oldType == Type.Unknown)&&(newType != Type.Error))
+				{
+					sb.put(getVarName(),newType);
+				}
+			}
+		}else{
+			/*if the type is not in FV,and add*/
+			if(newType == Type.Error)
+				sb.put(getVarName(),Type.Unknown);
 			else
-				sb.put(var,Type.Unknown);
+				sb.put(getVarName(),newType);
 		}
 	}
 	public void VarDef.FV(Map<String,Type> sb){
 		/*VarDef:Blockstmt	::= LabelAST:Label <Varm> <VarName> Type:VarType Expression;*/
-		String var = getVarName();
 		Type newType = Type.getType(getType().unParse());
-		if(sb.containsKey(var)){
-			/*var exit*/
-			Type oldType = sb.get(var);
-			if(((oldType == Type.Unknown)||(oldType == Type.Error))&&(newType != null))
-				sb.put(var,newType);
-			else if(oldType != newType)
-				sb.put(var,Type.Error);
-		}
-		else{
-			if(newType != null)
-				sb.put(var,newType);
+		if(sb.containsKey(getVarName()) == true){
+			Type oldType = sb.get(getVarName());
+			if(newType != oldType)
+			{
+				if((oldType == Type.Unknown)&&(newType != Type.Error))
+				{
+					sb.put(getVarName(),newType);
+				}
+			}
+		}else{
+			/*if the type is not in FV,and add*/
+			if(newType == Type.Error)
+				sb.put(getVarName(),Type.Unknown);
 			else
-				sb.put(var,Type.Unknown);
+				sb.put(getVarName(),newType);
 		}
 	}
 	

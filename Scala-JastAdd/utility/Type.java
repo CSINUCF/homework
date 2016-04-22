@@ -1,7 +1,7 @@
 package utility;
 
 public enum Type {
-	Int("Integer",0),
+	Int("Int",0),
 	Bool("Boolean",1),
 	Any("TypeAny",2),
 	Unknown("TypeUnknown",100),
@@ -32,14 +32,14 @@ public enum Type {
 			if(t.getName().equals(type))
 				return t;
 		}
-		return null;
+		return Type.Error;
 	}
 	public static Type getType(int index){
 		for(Type t : Type.values()){
 			if(t.getIndex() == index)
 				return t;
 		}
-		return null;
+		return Type.Error;
 	}
 	
 	/*get and set function*/

@@ -7,7 +7,7 @@ public class ScalaAETest extends TestCase {
 
 	public void testScalaAETest()
 	{
-		ScalaCompiler compiler = new ScalaCompiler("input/t8.txt");
+		ScalaCompiler compiler = new ScalaCompiler("input/t3.txt");
 		Program p = compiler.run();
 		runPreErrorCheck(p);
 	}
