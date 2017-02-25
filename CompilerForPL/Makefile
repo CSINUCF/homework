@@ -16,7 +16,13 @@ all:build test
 ################################################               
 #		    build all c files                  #
 ################################################
-build:$(SRC_DIR) $(CUR_OBJS)
+build:check_deps $(SRC_DIR) $(CUR_OBJS)
+
+check_deps:
+	@mkdir -p ${ROOT_DIR}/${OBJS_DIR}
+	@mkdir -p ${ROOT_DIR}/${BIN_DIR}
+	@mkdir -p ${ROOT_DIR}/${TEST_OUTPUT}
+
 
 #compile the targer recursively
 $(SRC_DIR):ECHO
@@ -59,5 +65,6 @@ test_symbol:${SYMBOLOBJS}
 	${BIN_DIR}/$@
 
 clean:
-	@rm -rf $(OBJS_DIR)/*.o
-	@rm -rf $(BIN_DIR)/*
+	@rm -rf $(OBJS_DIR)
+	@rm -rf $(BIN_DIR)
+	@rm -fr ${TEST_OUTPUT}
