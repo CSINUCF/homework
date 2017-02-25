@@ -14,7 +14,7 @@ CUR_OBJS=${patsubst %.c, %.o, $(CUR_SOURCE)}
 all:build test
 
 ################################################               
-#		    build all c files                  #
+#		    build all c files          #
 ################################################
 build:check_deps $(SRC_DIR) $(CUR_OBJS)
 
@@ -37,7 +37,7 @@ $(CUR_OBJS):%.o:%.c
 test:build test_vm test_scanner test_symbol
 
 ################################################               
-#		    Virtual Machine Test               #
+#		    Virtual Machine Test       #
 ################################################
 VMOBJS=${OBJS_DIR}/test_vm.o ${OBJS_DIR}/virtualMachine.o
 test_vm:${VMOBJS}
@@ -48,7 +48,7 @@ test_vm:${VMOBJS}
 
 	
 ################################################               
-#		    Scanner Test               	       #
+#		    Scanner Test               #
 ################################################
 SCANNEROBJS=${OBJS_DIR}/test_scanner.o ${OBJS_DIR}/scanner.o ${OBJS_DIR}/dfa.o ${OBJS_DIR}/symbolTable.o
 test_scanner:${SCANNEROBJS}
@@ -57,7 +57,7 @@ test_scanner:${SCANNEROBJS}
 
 
 ################################################               
-#		    symbol Table Test                  #
+#		    symbol Table Test          #
 ################################################
 SYMBOLOBJS=${OBJS_DIR}/test_symtable.o ${OBJS_DIR}/symbolTable.o
 test_symbol:${SYMBOLOBJS}
