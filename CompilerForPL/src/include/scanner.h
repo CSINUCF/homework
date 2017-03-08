@@ -21,6 +21,7 @@ typedef struct Scanner{
 	int (*putSymbol)(struct Scanner *this);
 	void (*exit)(struct Scanner *this);
 	void (*printLexmeList)(struct Scanner *this,char *path);
+	void (*outputLexmeList)(struct Scanner *this,FILE *out);
 }Scanner_t;
 extern Scanner_t * scanner_init(int numsSymbol);
 #endif

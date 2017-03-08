@@ -170,6 +170,10 @@ void SymTable_clean(struct SymTable *this){
 	free(this->Buckets);
 	free(this);
 }
+void _outputSymTable(struct SymTable *this,FILE *out){
+
+}
+
 
 void SymTable_print(struct SymTable *this,int option){
 	int i = 0;
@@ -251,7 +255,7 @@ struct SymTable *SymTable_init(int bucketCount){
 	symTable->getNumsOfBuckets = _getNumsOfBuckets;
 	symTable->clean = SymTable_clean;
 	symTable->printinfo = SymTable_print;
-	loginfo("The Symbol Table init successfully\n");
+	symTable->outputSymTable = _outputSymTable;
 
 	return symTable;
 }

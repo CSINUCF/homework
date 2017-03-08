@@ -35,22 +35,32 @@ char *opcode[] = {
 /****
  * Define VM API
  */	
-static inline void run_vm(struct virtualMachine *vm){
+static inline void run_vm(struct virtualMachine *vm,char *path){
 
 	int run_cnt = 1;
 	if(vm->status != IDLE){
-		loginfo("The current vm is not idle, please double check the state of vm: %d\n",vm->status);	
+		loginfo("The current vm is not idle, please double check the state of vm: %d\n",vm->status);
+		return;
 	}else{
 	   /*get the control of vm and set the vm status is running*/
+
+	   int numIR = vm->load_code(vm,path); //load the code to machine
+	   if(numIR == -1){
+		   logdebug("load source code error\n");
+		   vm->status = ERROR;
+		   return;
+	   }else{
+		   vm->numInstructions = numIR;
+	   }
 		vm->status = RUNNING;
 	    vm->prettyinfo(vm,0);
 		vm->prettyinfo(vm,1);
-		vmstdout(vm,"The initial state of Virtual machine is:\n");
-		vmstdout(vm,"Line OP   R  L  M\tPC BP SP\n");
+		CompilerStdout(vm->out_fp,"The initial state of Virtual machine is:\n");
+		CompilerStdout(vm->out_fp,"Line OP   R  L  M\tPC BP SP\n");
 	    vm->prettyinfo(vm,2);
 		vm->prettyinfo(vm,3);
 	#ifdef RPINT_VM_STATE
-		vmstdout(vm,"\nLine	Idx OP	 R	L  M\tPC BP SP\n");
+		CompilerStdout(vm->out_fp,"\nLine	Idx OP	 R	L  M\tPC BP SP\n");
 	#endif
 	}	
 	while(vm->status == RUNNING){
@@ -59,10 +69,11 @@ static inline void run_vm(struct virtualMachine *vm){
 			vm->status = ERROR;
 		}else{
 			vm->execute(vm);
-			vmstdout(vm,"%4d  ",run_cnt++);
+			CompilerStdout(vm->out_fp,"%4d  ",run_cnt++);
 			vm->prettyinfo(vm,2);
 		}
 	}
+	return;
 }
 
 
@@ -226,10 +237,10 @@ static inline void instruction_execution(struct virtualMachine *vm){
 }
 
 static inline void prettyprintInstruction(struct virtualMachine *vm,int idx,instruction_t *ir){
-	vmstdout(vm,"%4d %3s %2d %2d %2d",idx,opcode[ir->op],ir->r,ir->l,ir->m);
+	CompilerStdout(vm->out_fp,"%4d %3s %2d %2d %2d",idx,opcode[ir->op],ir->r,ir->l,ir->m);
 }
 static inline void prettyprintInstructionInDigital(struct virtualMachine *vm,int idx,instruction_t *ir){
-	vmstdout(vm,"%4d %2d %2d %2d %2d",idx,ir->op,ir->r,ir->l,ir->m);
+	CompilerStdout(vm->out_fp,"%4d %2d %2d %2d %2d",idx,ir->op,ir->r,ir->l,ir->m);
 }
 static inline int unparseInstruction(struct virtualMachine *vm,int idx,instruction_t *ir){
 	int op = ir->op;
@@ -238,70 +249,70 @@ static inline int unparseInstruction(struct virtualMachine *vm,int idx,instructi
 	int m = ir->m;
 	switch(op){
 		case LIT:{
-			vmstdout(vm,"%4d\t%s R[%d],%d,%d",idx,opcode[op],r,l,m);
+			CompilerStdout(vm->out_fp,"%4d\t%s R[%d],%d,%d",idx,opcode[op],r,l,m);
 		}break;
 		case RTN:{
-			vmstdout(vm,"%4d\t%s %d,%d,%d",idx,opcode[op],r,l,m);
+			CompilerStdout(vm->out_fp,"%4d\t%s %d,%d,%d",idx,opcode[op],r,l,m);
 		}break;
 		case LOD:{
-			vmstdout(vm,"%4d\t%s R[%d],%d,%d",idx,opcode[op],r,l,m);
+			CompilerStdout(vm->out_fp,"%4d\t%s R[%d],%d,%d",idx,opcode[op],r,l,m);
 		}break;
 		case STO:{
-			vmstdout(vm,"%4d\t%s R[%d],%d,%d",idx,opcode[op],r,l,m);
+			CompilerStdout(vm->out_fp,"%4d\t%s R[%d],%d,%d",idx,opcode[op],r,l,m);
 		}break;
 		case CAL:{
-			vmstdout(vm,"%4d\t%s %d,%d,%d",idx,opcode[op],r,l,m);
+			CompilerStdout(vm->out_fp,"%4d\t%s %d,%d,%d",idx,opcode[op],r,l,m);
 		}break;
 		case INC:{
-			vmstdout(vm,"%4d\t%s %d,%d,%d",idx,opcode[op],r,l,m);
+			CompilerStdout(vm->out_fp,"%4d\t%s %d,%d,%d",idx,opcode[op],r,l,m);
 		}break;
 		case JMP:{
-			vmstdout(vm,"%4d\t%s %d,%d,%d",idx,opcode[op],r,l,m);
+			CompilerStdout(vm->out_fp,"%4d\t%s %d,%d,%d",idx,opcode[op],r,l,m);
 		}break;
 		case JPC:{
-			vmstdout(vm,"%4d\t%s R[%d],%d,%d",idx,opcode[op],r,l,m);
+			CompilerStdout(vm->out_fp,"%4d\t%s R[%d],%d,%d",idx,opcode[op],r,l,m);
 		}break;
 		case SIO:{
-			vmstdout(vm,"%4d\t%s R[%d],%d,%d",idx,opcode[op],r,l,m);
+			CompilerStdout(vm->out_fp,"%4d\t%s R[%d],%d,%d",idx,opcode[op],r,l,m);
 		}break;
 		case NEG:{
-			vmstdout(vm,"%4d\t%s R[%d],R[%d],%d",idx,opcode[op],r,l,m);
+			CompilerStdout(vm->out_fp,"%4d\t%s R[%d],R[%d],%d",idx,opcode[op],r,l,m);
 		}break;
 		case ADD:{
-			vmstdout(vm,"%4d\t%s R[%d],R[%d],R[%d]",idx,opcode[op],r,l,m);
+			CompilerStdout(vm->out_fp,"%4d\t%s R[%d],R[%d],R[%d]",idx,opcode[op],r,l,m);
 		}break;
 		case SUB:{
-			vmstdout(vm,"%4d\t%s R[%d],R[%d],R[%d]",idx,opcode[op],r,l,m);
+			CompilerStdout(vm->out_fp,"%4d\t%s R[%d],R[%d],R[%d]",idx,opcode[op],r,l,m);
 		}break;
 		case MUL:{
-			vmstdout(vm,"%4d\t%s R[%d],R[%d],R[%d]",idx,opcode[op],r,l,m);
+			CompilerStdout(vm->out_fp,"%4d\t%s R[%d],R[%d],R[%d]",idx,opcode[op],r,l,m);
 		}break;
 		case DIV:{
-			vmstdout(vm,"%4d\t%s R[%d],R[%d],R[%d]",idx,opcode[op],r,l,m);
+			CompilerStdout(vm->out_fp,"%4d\t%s R[%d],R[%d],R[%d]",idx,opcode[op],r,l,m);
 		}break;
 		case ODD:{
-			vmstdout(vm,"%4d\t%s R[%d],%d,%d",idx,opcode[op],r,l,m);
+			CompilerStdout(vm->out_fp,"%4d\t%s R[%d],%d,%d",idx,opcode[op],r,l,m);
 		}break;
 		case MOD:{
-			vmstdout(vm,"%4d\t%s R[%d],R[%d],R[%d]",idx,opcode[op],r,l,m);
+			CompilerStdout(vm->out_fp,"%4d\t%s R[%d],R[%d],R[%d]",idx,opcode[op],r,l,m);
 		}break;
 		case EQL:{
-			vmstdout(vm,"%4d\t%s R[%d],R[%d],R[%d]",idx,opcode[op],r,l,m);
+			CompilerStdout(vm->out_fp,"%4d\t%s R[%d],R[%d],R[%d]",idx,opcode[op],r,l,m);
 		}break;
 		case NEQ:{
-			vmstdout(vm,"%4d\t%s R[%d],R[%d],R[%d]",idx,opcode[op],r,l,m);
+			CompilerStdout(vm->out_fp,"%4d\t%s R[%d],R[%d],R[%d]",idx,opcode[op],r,l,m);
 		}break;
 		case LSS:{
-			vmstdout(vm,"%4d\t%s R[%d],R[%d],R[%d]",idx,opcode[op],r,l,m);
+			CompilerStdout(vm->out_fp,"%4d\t%s R[%d],R[%d],R[%d]",idx,opcode[op],r,l,m);
 		}break;
 		case LEQ:{
-			vmstdout(vm,"%4d\t%s R[%d],R[%d],R[%d]",idx,opcode[op],r,l,m);
+			CompilerStdout(vm->out_fp,"%4d\t%s R[%d],R[%d],R[%d]",idx,opcode[op],r,l,m);
 		}break;
 		case GTR:{
-			vmstdout(vm,"%4d\t%s R[%d],R[%d],R[%d]",idx,opcode[op],r,l,m);
+			CompilerStdout(vm->out_fp,"%4d\t%s R[%d],R[%d],R[%d]",idx,opcode[op],r,l,m);
 		}break;
 		case GEQ:{
-			vmstdout(vm,"%4d\t%s R[%d],R[%d],R[%d]",idx,opcode[op],r,l,m);
+			CompilerStdout(vm->out_fp,"%4d\t%s R[%d],R[%d],R[%d]",idx,opcode[op],r,l,m);
 		}break;
 		default:{
 			logerror("The opcode is wrong,please double check");
@@ -314,46 +325,46 @@ static inline void printVMState(struct virtualMachine *vm){
 	int i = 0;
 	int j = 0;
 	prettyprintInstruction(vm,vm->pre_pc,&vm->ir);
-	vmstdout(vm,"\t%2d %2d %2d\t",vm->pc,vm->bp,vm->sp);
+	CompilerStdout(vm->out_fp,"\t%2d %2d %2d\t",vm->pc,vm->bp,vm->sp);
 	
 	/*Print the current register info*/
-	vmstdout(vm,"Register[%d]={",COMMON_REGISTER_NUMBER);
+	CompilerStdout(vm->out_fp,"Register[%d]={",COMMON_REGISTER_NUMBER);
 	for(i=0;i<COMMON_REGISTER_NUMBER;i++){
 		if(i == COMMON_REGISTER_NUMBER-1)
-			vmstdout(vm,"%d",vm->r[i]);
+			CompilerStdout(vm->out_fp,"%d",vm->r[i]);
 		else
-			vmstdout(vm,"%d ",vm->r[i]);
+			CompilerStdout(vm->out_fp,"%d ",vm->r[i]);
 	}
-	vmstdout(vm,"}\t");
+	CompilerStdout(vm->out_fp,"}\t");
 
 #if 0
 	/*Print the info of current AR*/
-	vmstdout(vm,"FrameLevel[%d]={",MAX_LEXI_LEVELS);
+	CompilerStdout(vm->out_fp,"FrameLevel[%d]={",MAX_LEXI_LEVELS);
 	for(i=0;i<MAX_LEXI_LEVELS;i++){
 		if(i == MAX_LEXI_LEVELS -1)
-			vmstdout(vm,"%d",vm->frameBreak[i]);
+			CompilerStdout(vm->out_fp,"%d",vm->frameBreak[i]);
 		else
-			vmstdout(vm,"%d ",vm->frameBreak[i]);
+			CompilerStdout(vm->out_fp,"%d ",vm->frameBreak[i]);
 	}
 	logpretty("}\t");
 #endif
 	
 	/*Print the current active stack info*/
 	int pcnt = vm->sp >=1?vm->sp:1;
-	vmstdout(vm,"Stack[%d]={",pcnt);
+	CompilerStdout(vm->out_fp,"Stack[%d]={",pcnt);
 	for(i=0;i<pcnt;i++){
 		if(i == pcnt-1)
-			vmstdout(vm,"%d",vm->stack[i]);
+			CompilerStdout(vm->out_fp,"%d",vm->stack[i]);
 		else
-			vmstdout(vm,"%d ",vm->stack[i]);
+			CompilerStdout(vm->out_fp,"%d ",vm->stack[i]);
 
 		for(j = 0;j<MAX_LEXI_LEVELS;j++){
 			if((i == vm->frameBreak[j])&&(i>1)){
-				vmstdout(vm,"| ");
+				CompilerStdout(vm->out_fp,"| ");
 			}
 		}
 	}
-	vmstdout(vm,"}\t");	
+	CompilerStdout(vm->out_fp,"}\t");	
 }
 
 
@@ -364,12 +375,12 @@ static inline void prettyPrintVMinfo(struct virtualMachine *vm,int option){
 			int i = 0;
 			instruction_t *code = vm->code;
 			//Printing the header
-			vmstdout(vm,"The total number of ir is:%d\n",vm->numInstructions);
-			vmstdout(vm,"Line OP   R  L  M\n");
+			CompilerStdout(vm->out_fp,"The total number of ir is:%d\n",vm->numInstructions);
+			CompilerStdout(vm->out_fp,"Line OP   R  L  M\n");
 			int numIr = vm->numInstructions;
 			for(i=0;i<numIr;i++){
 				prettyprintInstruction(vm,i,&code[i]);
-				vmstdout(vm,"\n");
+				CompilerStdout(vm->out_fp,"\n");
 			}
 			#endif
 		}break;
@@ -378,33 +389,33 @@ static inline void prettyPrintVMinfo(struct virtualMachine *vm,int option){
 			int i = 0;
 			instruction_t *code = vm->code;
 			//Printing the header
-			vmstdout(vm,"The total number of ir is:%d\n",vm->numInstructions);
-			vmstdout(vm,"Line\tInstruction\n");
+			CompilerStdout(vm->out_fp,"The total number of ir is:%d\n",vm->numInstructions);
+			CompilerStdout(vm->out_fp,"Line\tInstruction\n");
 			int numIr = vm->numInstructions;
 			for(i=0;i<numIr;i++){
 				unparseInstruction(vm,i,&code[i]);
-				vmstdout(vm,"\n");
+				CompilerStdout(vm->out_fp,"\n");
 			}
-			vmstdout(vm,"\n");
+			CompilerStdout(vm->out_fp,"\n");
 			#endif
 		}break;
 		case 2:{//Print current the state of Virtual Machine
 			#ifdef RPINT_VM_STATE
 			printVMState(vm);
-			vmstdout(vm,"\n");
+			CompilerStdout(vm->out_fp,"\n");
 			#endif
 		}break;
 		case 3:{
 			int i = 0;
 			instruction_t *code = vm->code;
-			vmstdout(vm,"The total number of ir is:%d\n",vm->numInstructions);
-			vmstdout(vm,"Line OP  R  L  M\tLine\tInstruction\n");
+			CompilerStdout(vm->out_fp,"The total number of ir is:%d\n",vm->numInstructions);
+			CompilerStdout(vm->out_fp,"Line OP  R  L  M\tLine\tInstruction\n");
 			int numIr = vm->numInstructions;
 			for(i=0;i<numIr;i++){
 				prettyprintInstructionInDigital(vm,i,&code[i]);
-				vmstdout(vm,"\t");
+				CompilerStdout(vm->out_fp,"\t");
 				unparseInstruction(vm,i,&code[i]);
-				vmstdout(vm,"\n");
+				CompilerStdout(vm->out_fp,"\n");
 			}
 		}break;
 		case 4:{
@@ -428,37 +439,8 @@ static inline int base(struct virtualMachine *vm,int l,int b){
 	return base;
 }
 
-
-static inline void help()
-{
-	#define USAGE1 "  1 Usage: ./vm -h \n"
-	#define USAGE2 "  2 Usage: ./vm -i inFile\n"
-	#define USAGE3 "  3 Usage: ./vm -i inFile -o outFile\n"
-	#define USAGE4 "  4 Usage: ./vm -o outFile -i inFile\n"
-	logpretty("\n\n*************************************************************\n");
-	loginfo("The help instruction for Virtual Machine\n");
-	logpretty("\nUsage: ./vm [OPTION] ... [FILE] ...\n");
-	logpretty("Options:\n");
-	logpretty("   -h\t\tprint out the help info\n");
-	logpretty("   -i inFile\tspecific the input files that p-machine virtual machine will execute\n");
-	logpretty("   -o outFile\tspecific the output files, if there is no output files, the virtual machine will output to system stdout\n");
-	logpretty("Example:\n");
-	logpretty(USAGE1);
-	logpretty(USAGE2);
-	logpretty(USAGE3);
-	logpretty(USAGE4);
-	logpretty("*************************************************************\n");
-}
-static inline void usage(){
-	logpretty("\n\nUsage: ./vm [OPTION] ... [FILE] ...\n\n");
-}
-
-
-
-
 /*load code from the text file and parse it into the instruction format*/
-static inline int load_code(struct virtualMachine *vm){
-	char *path = vm->in_path;
+static inline int load_code(struct virtualMachine *vm,char *path){
 	FILE* fin = NULL;
 	int pcounter = 0;
 	fin = fopen(path,"r");
@@ -485,73 +467,20 @@ static inline int load_code(struct virtualMachine *vm){
 
 static inline void exit_vm(struct virtualMachine *vm)
 {
-	if(vm->out_fp != NULL)
-		fclose(vm->out_fp);
+	
 }
 
-int init_vm(struct virtualMachine *vm,int argc, char* argv[]){
-
-	switch(argc){
-		case 1:{
-			logerror("The command parameter does not work properly,please make sure, option[%d]\n",argc);
-			help();
-			return -1;
-		}break;
-		case 2:{
-			/*./vm -h*/
-			
-			if(strcmp(argv[1],"-h") == 0){
-				help();	
-			}else{
-				logerror("The command parameter does not work properly,please make sure, option[%d]\n",argc);
-				usage();
-			}
-			vm->status = ERROR;
-			return -1;
-		}break;
-		case 3:{
-			//TODO
-		}break;
-		case 4:{
-			logerror("The command parameter does not work properly,please make sure, option[%d]\n",argc);
-			help();
-			vm->status = ERROR;
-			return -1;
-		}break;		
-		case 5:{
-			//TODO
-		}break;
-		default:{
-			int i = 0;
-			logerror("The command parameter does not work properly,please make sure, option[%d]\n",argc);
-			for(i=0;i<argc;i++)
-				logerror("argc[%d] %s\n",i,argv[i]);
-			logerror("\n");
-			help();
-			vm->status = ERROR;
-			return -1;
-		}
-	}
-	
-	int in_idx = findIndex(argc,argv,"-i");
-	int out_idx = findIndex(argc,argv,"-o");
-	vm->in_path = NULL;
-	vm->out_path = NULL;
+struct virtualMachine* init_vm(FILE *out){
 
 	
-	if((in_idx != -1)&&(in_idx + 1 <argc)){
-		vm->in_path = argv[in_idx+1];
+	virtualMachine_t *vm = (virtualMachine_t *)calloc(1,sizeof(virtualMachine_t));
+	if(vm == NULL){
+		logerror("Apply for memory for Virtual Machine failed\n");
+		return NULL;
 	}
-	
-	if((out_idx != -1)&&(out_idx+1<argc)){
-		vm->out_path = argv[out_idx+1];
-		if( access(vm->out_path, F_OK ) == -1){			
-			//ftruncate(vm->out_path,0);
-			fclose(fopen(vm->out_path, "w"));
-		}
-		
-		vm->out_fp = fopen (vm->out_path, "ab+");
-	}
+
+	vm->out_fp = out;
+
 	vm->sp = 0;
 	vm->bp = 1;
 	vm->pc = 0;
@@ -585,19 +514,9 @@ int init_vm(struct virtualMachine *vm,int argc, char* argv[]){
 	vm->execute = instruction_execution;
 	vm->prefetch = prefetch;
 	vm->run = run_vm;
-	vm->exit = exit_vm;
-	
-	int numIR = vm->load_code(vm); //load the code to machine
-	if(numIR == -1){
-		logdebug("Error\n");
-		vm->status = ERROR;
-		return -1;
-	}else{
-		vm->numInstructions = numIR;
-	}
-	
+	vm->exit = exit_vm;	
 	vm->status = IDLE;
 
-	return 0;
+	return vm;
 }
 

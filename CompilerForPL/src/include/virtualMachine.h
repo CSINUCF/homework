@@ -7,11 +7,6 @@
 
 #include "common.h"
 
-#define MAX_STACK_HEIGHT 2000
-#define MAX_CODE_LENGTH 500
-#define MAX_LEXI_LEVELS 3
-#define COMMON_REGISTER_NUMBER 16
-
 /*
  * Define "RPINT_VM_STATE" macro to debug the state of 
  * virtual machine when it executed an instruction
@@ -37,42 +32,6 @@
  */
 //#define OUTPUT_TO_CONSOLE
 
-typedef struct instruction{
-	int op; /*Operation Code*/
-	int r; /*Register*/
-	int l; /*Lexicographical Level*/
-	int m; /*Modifier*/
-}instruction_t;
-
-typedef enum {
-	LIT = 1,
-	RTN = 2,
-	LOD = 3,
-	STO = 4,
-	CAL = 5,
-	INC = 6,
-	JMP = 7,
-	JPC = 8,
-	SIO = 9,
-
-	//There are another two instructions with SIO Prefix
-	SIO2 = 10,  // Reserve
-	SIO3 = 11,  // Reserve
-	
-	NEG = 12,
-	ADD = 13,
-	SUB = 14,
-	MUL = 15,
-	DIV = 16,
-	ODD = 17,
-	MOD = 18,
-	EQL = 19,
-	NEQ = 20,
-	LSS = 21,
-	LEQ = 22,
-	GTR = 23,
-	GEQ = 24
-}opcode_e;
 typedef enum {
 	OUTPUT = 1, //print the data to the console
 	INPUT = 2, // read data from the console
@@ -99,23 +58,18 @@ typedef struct virtualMachine{
 	int numInstructions;
 	int status;
 
-
-	/*input file*/
-	char* in_path;
-	/*output file*/
-	char* out_path;
-	FILE * out_fp;
+	FILE * out_fp; //console std out file pointer
 
 	/*define some core function to manage and execute vm*/
 	int (*init)(struct virtualMachine *vm,int argc, char* argv[]);
 	void (*exit)(struct virtualMachine *vm);
-	int (*load_code)(struct virtualMachine *vm);
+	int (*load_code)(struct virtualMachine *vm, char* path);
 	void(*stdout)(struct virtualMachine *vm,char *format, ...);
 	int (*base)(struct virtualMachine *vm,int level,int base);
 	boolean (*prefetch)(struct virtualMachine *vm);
 	void (*execute)(struct virtualMachine *vm);
-	void (*run)(struct virtualMachine *vm);
+	void (*run)(struct virtualMachine *vm,char *path);
 	void (*prettyinfo)(struct virtualMachine *vm,int option);
 }virtualMachine_t;
-extern int init_vm(struct virtualMachine *vm,int argc, char* argv[]);
+extern struct virtualMachine* init_vm(FILE *out);
 #endif

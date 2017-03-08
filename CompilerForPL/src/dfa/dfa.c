@@ -414,7 +414,6 @@ void dfa_exit(struct DFA *this){
 	  free(root);
 	  root = next;
 	}
-	loginfo("The machine exist\n");
 }
 
 /*Read a local file, then run DFA until to the end of file*/
@@ -434,7 +433,7 @@ int dfa_run(struct DFA *this,char *path){
 /*Print the info of current DFA state and lexemes that found by this machine*/
 void printLexme(struct DFA *this,char *path){
 	LexemeEntry_t* tokenTable = this->tokenTable;
-	LexemeEntry_t* currToken = NULL;;
+	LexemeEntry_t* currToken = NULL;
 	int charIn;
 	
     loginfo("\nSource Program:\n");
@@ -463,9 +462,22 @@ void printLexme(struct DFA *this,char *path){
 		}
 		logpretty("\n");
 	}
+}
+
+void outputLexme(struct DFA *this,FILE *out){
 	
-
-
+	LexemeEntry_t* tokenTable = this->tokenTable;
+	LexemeEntry_t* currToken = NULL;
+	if(tokenTable != NULL){
+		currToken = tokenTable;
+		while(currToken != NULL){
+			if(currToken->printable == TRUE)
+				CompilerStdout(out,"%d %s ",currToken->type,currToken->buffer);
+			else
+				CompilerStdout(out,"%d ",currToken->type);
+			currToken = currToken->next;
+		}
+	}
 }
 /*Init a DFA, then return a DFA object*/
 struct DFA *dfa_init(){
@@ -496,6 +508,7 @@ struct DFA *dfa_init(){
 		dfa->run = dfa_run;
 		dfa->putLexeme = putLexeme;
 		dfa->printLexme = printLexme;
+		dfa->outputLexme = outputLexme;
 		return dfa;
 	}else{
 		logerror("Apply for DFA memory failed\n");

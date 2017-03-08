@@ -24,11 +24,11 @@ int main(int argc, char* argv[]){
 	}
 	scanner->run(scanner,path);
 
-	scanner->printLexmeList(scanner,path);
+	//scanner->printLexmeList(scanner,path);
 
 	struct SymTable *symbolTable = scanner->symbolTable;
 
-	symbolTable->printinfo(symbolTable,2);
+	//symbolTable->printinfo(symbolTable,2);
 
 	scanner->exit(scanner);
 

@@ -4,10 +4,6 @@
 #include "common.h"
 #include "scanner.h"
 
-#define MAX_IDENT_LENGTH 11
-#define MAX_RESERVED_WORD 15
-#define MAX_BUFFER_SIZE (MAX_IDENT_LENGTH+2)
-#define MAX_NUMBER_LENGTH 5
 
 
 // a set of State for DFA machine
@@ -50,45 +46,6 @@ typedef enum {
 
 
 
-//Lexeme Types
-typedef enum token {
-    nulsym = 1,        // "null"
-    identsym = 2,      // a variable
-    numbersym = 3,     // a number
-    plussym = 4,       // "+"
-    minussym = 5,      // "-"
-    multsym = 6,       // "*"
-    slashsym = 7,      // "/"
-    oddsym = 8,        // "odd"
-    eqlsym = 9,        // "="
-    neqsym = 10,       // "<>"
-    lessym = 11,       // "<"
-    leqsym = 12,       // "<="
-    gtrsym = 13,       // ">"
-    geqsym = 14,       // ">="
-    lparentsym = 15,   // "("
-    rparentsym = 16,   // ")"
-    commasym = 17,     // ","
-    semicolonsym = 18, // ";"
-    periodsym = 19,    // "."
-    becomessym = 20,   // ":="
-    beginsym = 21,     // "begin"
-    endsym = 22,       // "end"
-    ifsym = 23,        // "if"
-    thensym = 24,      // "then"
-    whilesym = 25,     // "while"
-    dosym = 26,        // "do"
-    callsym = 27,      // "call"
-    constsym = 28,     // "const"
-    varsym = 29,       // "var"
-    procsym = 30,      // "procedure"
-    writesym = 31,     // "write"
-    readsym = 32,      // "read"
-    elsesym = 33,      // "else"
-    commentsym = 34    // "comments"
-}Token_t;
-
-
 typedef struct lexeme{
 	Token_t type;
 	char buffer[MAX_BUFFER_SIZE];
@@ -126,6 +83,7 @@ typedef struct DFA{
 	int  (*run)(struct DFA *this,char *path);
 	void (*putLexeme)(struct DFA *this);
 	void (*printLexme)(struct DFA *this,char *path);
+	void (*outputLexme)(struct DFA *this,FILE *out);
 }DFA_T;
 
 

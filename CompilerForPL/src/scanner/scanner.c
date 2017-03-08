@@ -3,9 +3,6 @@
 void scanner_exit(struct Scanner *this){
 	struct DFA *dfa = this->dfa;
 	struct SymTable *symbolTable = this->symbolTable;
-
-
-
 	dfa->exit(dfa);
 	symbolTable->clean(symbolTable);
 }
@@ -144,6 +141,12 @@ static inline void _printLexmeList(struct Scanner *this,char *path){
 	dfa->printLexme(dfa,path);
 }
 
+
+static inline void _outputLexmeList(struct Scanner *this,FILE *out){
+	DFA_T *dfa = this->dfa;
+	dfa->outputLexme(dfa,out);
+}
+
 int scanner_run(struct Scanner *this,char *path){
 	struct DFA *dfa = this->dfa;
 
@@ -170,16 +173,20 @@ Scanner_t * scanner_init(int numsSymbol){
 	scanner->dfa = dfa_init();
 	if(scanner->dfa == NULL){
 		logerror("Init DFA failed\n");
+		free(scanner);
 		return NULL;
 	}
 	scanner->symbolTable = SymTable_init(numsSymbol);
 	if(scanner->symbolTable == NULL){
 		logerror("Init Symbol Table failed\n");
+		scanner->dfa->exit(scanner->dfa);
+		free(scanner);
 		return NULL;
 	}
 	scanner->run = scanner_run;
 	scanner->exit = scanner_exit;
 	scanner->printLexmeList = _printLexmeList;
 	scanner->putSymbol = putSymbol;
+	scanner->outputLexmeList = _outputLexmeList;
 	return scanner;
 }

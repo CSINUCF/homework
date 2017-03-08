@@ -49,7 +49,7 @@ typedef struct SymTable
   int (*getNumsOfBuckets)(struct SymTable *this);
 
   void (*printinfo)(struct SymTable *this,int option);
-  
+  void (*outputSymTable)(struct SymTable *this,FILE *out);
 }SymTable_T;
 
 extern struct SymTable *SymTable_init(int bucketCount);
