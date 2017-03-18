@@ -38,12 +38,12 @@ typedef struct SymTable
 
   /*Operation*/
   void (*clean)(struct SymTable *this);
-  int (*getHashValue)(struct SymTable *this,char *key);
-  boolean (*contain)(struct SymTable *this,char *key);
-  boolean (*put)(struct SymTable *this,char *key,void *value);
-  void *(*get)(struct SymTable *this,char *key);
-  void *(*update)(struct SymTable *this,char *key,void *value);
-  void *(*remove)(struct SymTable *this,char *key);
+  int (*getHashValue)(struct SymTable *this,char *key, int lexical);
+  boolean (*contain)(struct SymTable *this,char *key,int lexical);
+  boolean (*put)(struct SymTable *this,char *key,int lexical,void *value);
+  void *(*get)(struct SymTable *this,char *key,int lexical);
+  void *(*update)(struct SymTable *this,char *key,int lexical,void *value);
+  void *(*remove)(struct SymTable *this,char *key,int lexical);
 
   int (*getNumsOfsymbol)(struct SymTable *this);
   int (*getNumsOfBuckets)(struct SymTable *this);

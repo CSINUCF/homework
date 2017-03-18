@@ -32,7 +32,18 @@ ECHO:
 #if current dir contains *.c file then compile them
 $(CUR_OBJS):%.o:%.c
 	$(CC) -c $^ -o $(ROOT_DIR)/$(OBJS_DIR)/$@
-	
+
+
+###################################################################################	
+#Build a driver execute file
+###################################################################################	
+DRIVEROBJS=${OBJS_DIR}/compilerDriver.o ${OBJS_DIR}/virtualMachine.o ${OBJS_DIR}/scanner.o ${OBJS_DIR}/dfa.o ${OBJS_DIR}/symbolTable.o ${OBJS_DIR}/parse.o ${OBJS_DIR}/parserInit.o ${OBJS_DIR}/unparse.o ${OBJS_DIR}/gencode.o ${OBJS_DIR}/printAST.o
+compile:${DRIVEROBJS}
+	${CC} -o ${BIN_DIR}/$@ $^
+#	${BIN_DIR}/$@ -i ${TEST_INPUT}/dfa.txt
+
+###################################################################################
+###################################################################################	
 
 test:build test_vm test_scanner test_symbol
 
@@ -63,6 +74,15 @@ SYMBOLOBJS=${OBJS_DIR}/test_symtable.o ${OBJS_DIR}/symbolTable.o
 test_symbol:${SYMBOLOBJS}
 	${CC} -o ${BIN_DIR}/$@ $^
 	${BIN_DIR}/$@
+
+
+################################################               
+#		    symbol parse Test          #
+################################################
+PARSEOBJS=${OBJS_DIR}/test_parser.o ${OBJS_DIR}/symbolTable.o ${OBJS_DIR}/parse.o ${OBJS_DIR}/parserInit.o ${OBJS_DIR}/unparse.o ${OBJS_DIR}/printAST.o
+test_parse:${PARSEOBJS}
+	${CC} -o ${BIN_DIR}/$@ $^
+	${BIN_DIR}/$@ -i ${TEST_INPUT}/parse_t1.txt
 
 clean:
 	@rm -rf $(OBJS_DIR)

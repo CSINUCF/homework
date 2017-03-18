@@ -2,9 +2,7 @@
 
 void scanner_exit(struct Scanner *this){
 	struct DFA *dfa = this->dfa;
-	struct SymTable *symbolTable = this->symbolTable;
 	dfa->exit(dfa);
-	symbolTable->clean(symbolTable);
 }
 
 
@@ -57,7 +55,7 @@ static inline int putSymbol(struct Scanner *this){
 							errFlag = TRUE;
 							break;
 						}
-						symbolTable->put(symbolTable,node->name,node);
+						symbolTable->put(symbolTable,node->name,0,node);
 						node = NULL;
 					}
 				}else{
@@ -85,7 +83,7 @@ static inline int putSymbol(struct Scanner *this){
 							errFlag = TRUE;
 							break;
 						}
-						symbolTable->put(symbolTable,node->name,node);
+						symbolTable->put(symbolTable,node->name,0,node);
 						node = NULL;
 					}
 				}else{
@@ -114,7 +112,7 @@ static inline int putSymbol(struct Scanner *this){
 							errFlag = TRUE;
 							break;
 						}
-						symbolTable->put(symbolTable,node->name,node);
+						symbolTable->put(symbolTable,node->name,0,node);
 						node = NULL;
 					}
 				}else{
@@ -160,11 +158,14 @@ int scanner_run(struct Scanner *this,char *path){
 		dfa->getNextLexeme(dfa,fin);
 	}
 	fclose(fin);
-	this->putSymbol(this);
+	#if 0	
+	if(this->symbolTable != NULL)
+		this->putSymbol(this);
+	#endif
 	return 0;
 }
 
-Scanner_t * scanner_init(int numsSymbol){
+Scanner_t * scanner_init(struct SymTable * syms){
 	Scanner_t *scanner = (Scanner_t *)calloc(1,sizeof(Scanner_t));
 	if(scanner == NULL){
 		logerror("Apply for scanner memory failed\n");
@@ -175,18 +176,13 @@ Scanner_t * scanner_init(int numsSymbol){
 		logerror("Init DFA failed\n");
 		free(scanner);
 		return NULL;
-	}
-	scanner->symbolTable = SymTable_init(numsSymbol);
-	if(scanner->symbolTable == NULL){
-		logerror("Init Symbol Table failed\n");
-		scanner->dfa->exit(scanner->dfa);
-		free(scanner);
-		return NULL;
-	}
+	}	
+	scanner->symbolTable = syms;
 	scanner->run = scanner_run;
 	scanner->exit = scanner_exit;
 	scanner->printLexmeList = _printLexmeList;
 	scanner->putSymbol = putSymbol;
 	scanner->outputLexmeList = _outputLexmeList;
+	logdebug("Scanner initial successfully\n");
 	return scanner;
 }

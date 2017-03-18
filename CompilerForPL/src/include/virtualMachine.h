@@ -68,8 +68,8 @@ typedef struct virtualMachine{
 	int (*base)(struct virtualMachine *vm,int level,int base);
 	boolean (*prefetch)(struct virtualMachine *vm);
 	void (*execute)(struct virtualMachine *vm);
-	void (*run)(struct virtualMachine *vm,char *path);
+	void (*run)(struct virtualMachine *vm,char *path,FILE *stdout);
 	void (*prettyinfo)(struct virtualMachine *vm,int option);
 }virtualMachine_t;
-extern struct virtualMachine* init_vm(FILE *out);
+extern struct virtualMachine* init_vm();
 #endif

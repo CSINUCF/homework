@@ -16,25 +16,32 @@
 
 #define MAX_STACK_HEIGHT 2000
 #define MAX_CODE_LENGTH 500
-#define MAX_LEXI_LEVELS 3
+#define MAX_CODE_SETS 	100
+#define MAX_LEXI_LEVELS 5
 #define COMMON_REGISTER_NUMBER 16
 
 #define MAX_IDENT_LENGTH 11
 #define MAX_RESERVED_WORD 15
 #define MAX_BUFFER_SIZE (MAX_IDENT_LENGTH+2)
 #define MAX_NUMBER_LENGTH 5
+#define MAX_SYMBOL_CNT 500
 
-#define DEBUG
+
+#define DEBUG	0 //non-zero to print out debug info
 
 #define loginfo(format, ...)\
-	printf("INFO " format,##__VA_ARGS__)
+	printf("INFO %s\t" format,__func__,##__VA_ARGS__)
 
 #define logpretty(format, ...)\
 	printf(format,##__VA_ARGS__)
 
 #define logerror(format, ...)\
-	printf("ERROR %s:%d " format,__FILE__,__LINE__,##__VA_ARGS__)
+	printf("ERROR %s:%s:%d " format,__FILE__,__func__,__LINE__,##__VA_ARGS__)
 
+#define logdebug(format, ...) do{\
+		if(DEBUG)\
+			printf("DEBUG %s:%s:%d " format,__FILE__,__func__,__LINE__,##__VA_ARGS__);\
+	}while(0)
 /*
   * out_fp:  a file pointer to point to a open file
   */
@@ -45,15 +52,6 @@
 		else\
 			printf(format,##__VA_ARGS__);\
 	}while(0)
-	
-#ifdef DEBUG
-#define logdebug(format, ...)\
-	printf("DEBUG %s:%d " format,__FILE__,__LINE__,##__VA_ARGS__)
-#else
-#define logdebug(format, ...) 
-#endif
-
-
 
 typedef struct instruction{
 	int op; /*Operation Code*/
@@ -102,13 +100,13 @@ typedef enum token {
     minussym = 5,      // "-"
     multsym = 6,       // "*"
     slashsym = 7,      // "/"
-    oddsym = 8,        // "odd"
-    eqlsym = 9,        // "="
-    neqsym = 10,       // "<>"
-    lessym = 11,       // "<"
-    leqsym = 12,       // "<="
-    gtrsym = 13,       // ">"
-    geqsym = 14,       // ">="
+    oddsym = 8,        // "odd" 17
+    eqlsym = 9,        // "="    19
+    neqsym = 10,       // "<>"   20
+    lessym = 11,       // "<"    21
+    leqsym = 12,       // "<="   22
+    gtrsym = 13,       // ">"    23
+    geqsym = 14,       // ">="  24
     lparentsym = 15,   // "("
     rparentsym = 16,   // ")"
     commasym = 17,     // ","
@@ -131,11 +129,106 @@ typedef enum token {
     commentsym = 34    // "comments"
 }Token_t;
 
+typedef enum {
+	CONST_S = 1,
+	VAR_S =2,
+	PROC_S=3
+}SymbolType;
+
+typedef struct Symbol{ 
+	int kind; 			// const = 1, var = 2, proc = 3
+	char *name;			// name up to 11 chars
+	int val; 			// number (ASCII value)
+	int level; 			// L level
+	int addr; 			// M address
+}Symbol_t; 
+
 
 typedef enum {
 	FALSE = 0,
 	TRUE = 1
 }boolean;
+extern char *opcode[];
+static inline int unparseIr(FILE *out_fp,int idx,instruction_t *ir){
+	int op = ir->op;
+	int r = ir->r;
+	int l = ir->l;
+	int m = ir->m;
+	switch(op){
+		case LIT:{
+			CompilerStdout(out_fp,"%4d\t%s R[%d],%d,%d",idx,opcode[op],r,l,m);
+		}break;
+		case RTN:{
+			CompilerStdout(out_fp,"%4d\t%s %d,%d,%d",idx,opcode[op],r,l,m);
+		}break;
+		case LOD:{
+			CompilerStdout(out_fp,"%4d\t%s R[%d],%d,%d",idx,opcode[op],r,l,m);
+		}break;
+		case STO:{
+			CompilerStdout(out_fp,"%4d\t%s R[%d],%d,%d",idx,opcode[op],r,l,m);
+		}break;
+		case CAL:{
+			CompilerStdout(out_fp,"%4d\t%s %d,%d,%d",idx,opcode[op],r,l,m);
+		}break;
+		case INC:{
+			CompilerStdout(out_fp,"%4d\t%s %d,%d,%d",idx,opcode[op],r,l,m);
+		}break;
+		case JMP:{
+			CompilerStdout(out_fp,"%4d\t%s %d,%d,%d",idx,opcode[op],r,l,m);
+		}break;
+		case JPC:{
+			CompilerStdout(out_fp,"%4d\t%s R[%d],%d,%d",idx,opcode[op],r,l,m);
+		}break;
+		case SIO:{
+			CompilerStdout(out_fp,"%4d\t%s R[%d],%d,%d",idx,opcode[op],r,l,m);
+		}break;
+		case NEG:{
+			CompilerStdout(out_fp,"%4d\t%s R[%d],R[%d],%d",idx,opcode[op],r,l,m);
+		}break;
+		case ADD:{
+			CompilerStdout(out_fp,"%4d\t%s R[%d],R[%d],R[%d]",idx,opcode[op],r,l,m);
+		}break;
+		case SUB:{
+			CompilerStdout(out_fp,"%4d\t%s R[%d],R[%d],R[%d]",idx,opcode[op],r,l,m);
+		}break;
+		case MUL:{
+			CompilerStdout(out_fp,"%4d\t%s R[%d],R[%d],R[%d]",idx,opcode[op],r,l,m);
+		}break;
+		case DIV:{
+			CompilerStdout(out_fp,"%4d\t%s R[%d],R[%d],R[%d]",idx,opcode[op],r,l,m);
+		}break;
+		case ODD:{
+			CompilerStdout(out_fp,"%4d\t%s R[%d],%d,%d",idx,opcode[op],r,l,m);
+		}break;
+		case MOD:{
+			CompilerStdout(out_fp,"%4d\t%s R[%d],R[%d],R[%d]",idx,opcode[op],r,l,m);
+		}break;
+		case EQL:{
+			CompilerStdout(out_fp,"%4d\t%s R[%d],R[%d],R[%d]",idx,opcode[op],r,l,m);
+		}break;
+		case NEQ:{
+			CompilerStdout(out_fp,"%4d\t%s R[%d],R[%d],R[%d]",idx,opcode[op],r,l,m);
+		}break;
+		case LSS:{
+			CompilerStdout(out_fp,"%4d\t%s R[%d],R[%d],R[%d]",idx,opcode[op],r,l,m);
+		}break;
+		case LEQ:{
+			CompilerStdout(out_fp,"%4d\t%s R[%d],R[%d],R[%d]",idx,opcode[op],r,l,m);
+		}break;
+		case GTR:{
+			CompilerStdout(out_fp,"%4d\t%s R[%d],R[%d],R[%d]",idx,opcode[op],r,l,m);
+		}break;
+		case GEQ:{
+			CompilerStdout(out_fp,"%4d\t%s R[%d],R[%d],R[%d]",idx,opcode[op],r,l,m);
+		}break;
+		default:{
+			logerror("The opcode is wrong,please double check");
+			return -1;
+		}
+	}
+	return 0;
+}
+
 
 static inline char *repeatString(char *str,int count) {
     if (count == 0) return NULL;
@@ -170,4 +263,107 @@ static inline int findIndex(int argc, char* argv[],char *p){
 	return idx;
 }
 
+static inline FILE *fileCreateAndOpen(char *path){
+	if(access(path,F_OK ) == -1){
+		logdebug("\n");
+		fclose(fopen(path, "w"));
+	}
+	return fopen(path, "ab+");
+}
+
+static inline void throwError(int errorType)
+{
+
+    loginfo("Error %d: ", errorType);
+
+    switch (errorType) {
+    case 1:
+        logpretty("Use = instead of :=.\n");
+        break;
+    case 2:
+        logpretty("= must be followed by a number.\n");
+        break;
+    case 3:
+        logpretty("Identifier must be followed by = .\n");
+        break;
+    case 4:
+        logpretty("const, var, procedure must be followed by identifier.\n");
+        break;
+    case 5:
+        logpretty("Semicolon or comma missing.\n");
+        break;
+    case 6:
+        logpretty("Incorrect symbol after procedure declaration.\n");
+        break;
+    case 7:
+        logpretty("Statement expected.\n");
+        break;
+    case 8:
+        logpretty("Incorrect symbol after statement part in block.\n");
+        break;
+    case 9:
+        logpretty("Period expected.\n");
+        break;
+    case 10:
+        logpretty("Semicolon between statements missing.\n");
+        break;
+    case 11:
+        logpretty("Undeclared identifier.\n");
+        break;
+    case 12:
+        logpretty("Assignment to constant or procedure is not allowed.\n");
+        break;
+    case 13:
+        logpretty("Assignment operator expected.\n");
+        break;
+    case 14:
+        logpretty("call must be followed by an identifier.\n");
+        break;
+    case 15:
+        logpretty("Call of a constant or variable is meaningless.\n");
+        break;
+    case 16:
+        logpretty("then expected.\n");
+        break;
+    case 17:
+        logpretty("Semicolon or } expected.\n");
+        break;
+    case 18:
+        logpretty("do expected.\n");
+        break;
+    case 19:
+        logpretty("Incorrect symbol following statement.\n");
+        break;
+    case 20:
+        logpretty("Relational operator expected.\n");
+        break;
+    case 21:
+        logpretty("Expression must not contain a procedure identifier.\n");
+        break;
+    case 22:
+        logpretty("Right parenthesis missing.\n");
+        break;
+    case 23:
+        logpretty("The preceding factor cannot begin with this symbol.\n");
+        break;
+    case 24:
+        logpretty("An expression cannot begin with this symbol.\n");
+        break;
+    case 25:
+        logpretty("This number is too large.\n");
+        break;
+    case 26:
+        logpretty("end expected.\n");
+        break;
+    case 27:
+        logpretty("read must be followed by an variable identifier.\n");
+        break;
+    case 28:
+        logpretty("write must be followed by an identifier.\n");
+        break;
+    case 29:
+        logpretty("Symbol out of scope.\n");
+        break;
+    }
+}
 #endif

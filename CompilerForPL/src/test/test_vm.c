@@ -84,17 +84,19 @@ int main(int argc, char* argv[]){
 	
 	if((out_idx != -1)&&(out_idx+1<argc)){
 		out_path = argv[out_idx+1];
-		if( access(out_path, F_OK ) == -1){			
+		if( access(out_path, F_OK ) == -1){
+			logdebug("out path:%s\n",out_path);
 			//ftruncate(vm->out_path,0);
 			fclose(fopen(out_path, "w"));
 		}
 		
-		out_fp = fopen (out_path, "ab+");
+		out_fp = fopen(out_path, "ab+");
 	}
 
-	struct virtualMachine* vm = init_vm(out_fp);
+	struct virtualMachine* vm = init_vm();
 	if(vm != NULL){
-		vm->run(vm,in_path);
+		vm->run(vm,in_path,out_fp);
+		vm->exit(vm);
 	}else{
 		logerror("inital a vm failed\n");
 	}

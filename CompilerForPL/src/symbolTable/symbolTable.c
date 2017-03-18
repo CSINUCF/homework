@@ -3,20 +3,20 @@
 /*
  * http://www.cse.yorku.ca/~oz/hash.html
  */
-int hashcode(struct SymTable *this,char *key){
+int hashcode(struct SymTable *this,char *key,int lexical){
 	unsigned long hash = 5381;
 	int c;
 
 	while (c = *key++)
 		hash = ((hash << 5) + hash) + c; /* hash * 33 + c */
 
-	  return hash%this->numsBucket;
+	  return (hash+lexical)%this->numsBucket;
 }
 
-boolean _contain(struct SymTable *this,char *key){
+boolean _contain(struct SymTable *this,char *key,int lexical){
 	assert(this != NULL);
 	assert(key != NULL);
-	int hashValue = this->getHashValue(this,key);
+	int hashValue = this->getHashValue(this,key,lexical);
 	SymTableNode_T * curNode = this->Buckets[hashValue];
 	if((curNode != NULL)&&(strcmp(curNode->Key,key) == 0))
 		return TRUE;
@@ -25,7 +25,7 @@ boolean _contain(struct SymTable *this,char *key){
 	}
 }
 
-boolean _put(struct SymTable *this,char *key, void *value){
+boolean _put(struct SymTable *this,char *key,int lexical,void *value){
 	SymTableNode_T* newNode = NULL;
 	
 	assert(this != NULL);
@@ -38,7 +38,7 @@ boolean _put(struct SymTable *this,char *key, void *value){
 		return FALSE;
 	}
 	
-	if(this->contain(this,key)){
+	if(this->contain(this,key,lexical)){
 		// TODO update the value
 		loginfo("The key[%s] exist in the table\n",key);
 		return FALSE;
@@ -63,8 +63,7 @@ boolean _put(struct SymTable *this,char *key, void *value){
 	newNode->PreNode = newNode;
 	newNode->NextNode = newNode;
 	
-	int hashValue = this->getHashValue(this,key);
-	//loginfo("key[%s],value[%p],hash[%d]\n",key,value,hashValue);
+	int hashValue = this->getHashValue(this,key,lexical);
 	newNode->hashValue = hashValue;
 	this->Buckets[hashValue] = newNode;
 	
@@ -84,42 +83,42 @@ boolean _put(struct SymTable *this,char *key, void *value){
 	return TRUE;
 }
 
-void* _getValue(struct SymTable *this,char *key){
-	if(this->contain(this,key) == FALSE){
+void* _getValue(struct SymTable *this,char *key,int lexical){
+	if(this->contain(this,key,lexical) == FALSE){
 		logerror("The key[%s] does not exist in the table\n",key);
 		return NULL;
 	}
-	int hashValue = this->getHashValue(this,key);
+	int hashValue = this->getHashValue(this,key,lexical);
 	return this->Buckets[hashValue]->Value;
 }
 
 
-void *_update(struct SymTable *this,char *key,void *value){
+void *_update(struct SymTable *this,char *key,int lexical,void *value){
 	
-	if(this->contain(this,key) == FALSE){
+	if(this->contain(this,key,lexical) == FALSE){
 		logerror("The key[%s] does not exist in the table\n",key);
 		return NULL;
 	}
-	int hashValue = this->getHashValue(this,key);
+	int hashValue = this->getHashValue(this,key,lexical);
 	void *oldValue = this->Buckets[hashValue]->Value;
 	this->Buckets[hashValue]->Value = value;
 	return oldValue;
 }
 
 
-void *_remove(struct SymTable *this,char *key)
+void *_remove(struct SymTable *this,char *key,int lexical)
 {	
 	SymTableNode_T *cur = NULL;
 	SymTableNode_T *pre = NULL;
 	SymTableNode_T *next = NULL;
 	void *oldValue = NULL;
 	
-	if(this->contain(this,key) == FALSE){		
+	if(this->contain(this,key,lexical) == FALSE){		
 		logerror("The key[%s] does not exist in the table\n",key);
 		return oldValue;
 	}
 		
-	int hashValue = this->getHashValue(this,key);
+	int hashValue = this->getHashValue(this,key,lexical);
 	
 	cur = this->Buckets[hashValue];
 	pre = cur->PreNode;
@@ -161,14 +160,15 @@ void SymTable_clean(struct SymTable *this){
 		cur = this->Buckets[i];
 		if(cur != NULL){
 			free(cur->Key);
-			free(cur);
 			if(cur->Value != NULL){
 				free(cur->Value);
 			}
+			free(cur);
 		}
 	}
 	free(this->Buckets);
-	free(this);
+	logdebug("symbol table exit successfully\n");
+	return;
 }
 void _outputSymTable(struct SymTable *this,FILE *out){
 
@@ -204,7 +204,7 @@ void SymTable_print(struct SymTable *this,int option){
 			do{
 				if(cur != NULL){
 					symbol = (Symbol_t*)cur->Value;
-					logpretty("Symbol Entry{Hash[%d],Key[%s],kind[%d],value[%d],level[%d],addr[%d]}\n",
+					logpretty("Symbol Entry{Hash[%d],\tKey[%s],\tkind[%d],\tvalue[%d],\tlevel[%d],\taddr[%d]}\n",
 							cur->hashValue,symbol->name,symbol->kind,symbol->val,symbol->level,symbol->addr);
 					
 					cur = cur->NextNode;
@@ -256,6 +256,6 @@ struct SymTable *SymTable_init(int bucketCount){
 	symTable->clean = SymTable_clean;
 	symTable->printinfo = SymTable_print;
 	symTable->outputSymTable = _outputSymTable;
-
+	logdebug("Symbol Table initial successfully\n");
 	return symTable;
 }

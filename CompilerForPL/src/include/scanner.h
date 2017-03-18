@@ -5,15 +5,6 @@
 #include "dfa.h"
 #include "symtable.h"
 
-
-typedef struct Symbol{ 
-	int kind; 			// const = 1, var = 2, proc = 3
-	char *name;			// name up to 11 chars
-	int val; 			// number (ASCII value)
-	int level; 			// L level
-	int addr; 			// M address
-}Symbol_t; 
-
 typedef struct Scanner{
 	struct DFA *dfa;
 	struct SymTable *symbolTable;
@@ -23,5 +14,5 @@ typedef struct Scanner{
 	void (*printLexmeList)(struct Scanner *this,char *path);
 	void (*outputLexmeList)(struct Scanner *this,FILE *out);
 }Scanner_t;
-extern Scanner_t * scanner_init(int numsSymbol);
+extern Scanner_t * scanner_init(struct SymTable * syms);
 #endif

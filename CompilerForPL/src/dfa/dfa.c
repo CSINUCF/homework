@@ -438,8 +438,9 @@ void printLexme(struct DFA *this,char *path){
 	
     loginfo("\nSource Program:\n");
     FILE* fin = fopen(path,"r");
-    while((charIn = fgetc(fin)) != EOF)
-      printf("%c", (char)charIn);
+    while((charIn = fgetc(fin)) != EOF){
+      logpretty("%c", (char)charIn);
+    }
     fclose(fin);
 
 	if(tokenTable != NULL){
@@ -509,9 +510,9 @@ struct DFA *dfa_init(){
 		dfa->putLexeme = putLexeme;
 		dfa->printLexme = printLexme;
 		dfa->outputLexme = outputLexme;
-		return dfa;
+		logdebug("DFA initail successfully\n");
 	}else{
 		logerror("Apply for DFA memory failed\n");
-		return NULL;
-	}
+	}	
+	return dfa;
 }

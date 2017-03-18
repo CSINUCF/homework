@@ -35,7 +35,7 @@ char *opcode[] = {
 /****
  * Define VM API
  */	
-static inline void run_vm(struct virtualMachine *vm,char *path){
+static inline void run_vm(struct virtualMachine *vm,char *path,FILE *stdout){
 
 	int run_cnt = 1;
 	if(vm->status != IDLE){
@@ -43,7 +43,7 @@ static inline void run_vm(struct virtualMachine *vm,char *path){
 		return;
 	}else{
 	   /*get the control of vm and set the vm status is running*/
-
+	   vm->out_fp = stdout;
 	   int numIR = vm->load_code(vm,path); //load the code to machine
 	   if(numIR == -1){
 		   logdebug("load source code error\n");
@@ -143,10 +143,10 @@ static inline void instruction_execution(struct virtualMachine *vm){
 		}break;
 		case CAL:{ 
 			//Call procedure at code index M (generates new Activation Record and pc <- M)
-			stack[sp+1] = 0;
-			stack[sp+2] = vm->base(vm,j,bp);
-			stack[sp+3] = bp;
-			stack[sp+4] = pc;
+			stack[sp+1] = 0;//space to return value
+			stack[sp+2] = vm->base(vm,j,bp); //static link(SL)
+			stack[sp+3] = bp;// dynamic link (DL)
+			stack[sp+4] = pc;// return address(RA)
 			bp = sp +1;
 			pc = k;
 			frameBreak[frameLevel] = sp;
@@ -243,83 +243,7 @@ static inline void prettyprintInstructionInDigital(struct virtualMachine *vm,int
 	CompilerStdout(vm->out_fp,"%4d %2d %2d %2d %2d",idx,ir->op,ir->r,ir->l,ir->m);
 }
 static inline int unparseInstruction(struct virtualMachine *vm,int idx,instruction_t *ir){
-	int op = ir->op;
-	int r = ir->r;
-	int l = ir->l;
-	int m = ir->m;
-	switch(op){
-		case LIT:{
-			CompilerStdout(vm->out_fp,"%4d\t%s R[%d],%d,%d",idx,opcode[op],r,l,m);
-		}break;
-		case RTN:{
-			CompilerStdout(vm->out_fp,"%4d\t%s %d,%d,%d",idx,opcode[op],r,l,m);
-		}break;
-		case LOD:{
-			CompilerStdout(vm->out_fp,"%4d\t%s R[%d],%d,%d",idx,opcode[op],r,l,m);
-		}break;
-		case STO:{
-			CompilerStdout(vm->out_fp,"%4d\t%s R[%d],%d,%d",idx,opcode[op],r,l,m);
-		}break;
-		case CAL:{
-			CompilerStdout(vm->out_fp,"%4d\t%s %d,%d,%d",idx,opcode[op],r,l,m);
-		}break;
-		case INC:{
-			CompilerStdout(vm->out_fp,"%4d\t%s %d,%d,%d",idx,opcode[op],r,l,m);
-		}break;
-		case JMP:{
-			CompilerStdout(vm->out_fp,"%4d\t%s %d,%d,%d",idx,opcode[op],r,l,m);
-		}break;
-		case JPC:{
-			CompilerStdout(vm->out_fp,"%4d\t%s R[%d],%d,%d",idx,opcode[op],r,l,m);
-		}break;
-		case SIO:{
-			CompilerStdout(vm->out_fp,"%4d\t%s R[%d],%d,%d",idx,opcode[op],r,l,m);
-		}break;
-		case NEG:{
-			CompilerStdout(vm->out_fp,"%4d\t%s R[%d],R[%d],%d",idx,opcode[op],r,l,m);
-		}break;
-		case ADD:{
-			CompilerStdout(vm->out_fp,"%4d\t%s R[%d],R[%d],R[%d]",idx,opcode[op],r,l,m);
-		}break;
-		case SUB:{
-			CompilerStdout(vm->out_fp,"%4d\t%s R[%d],R[%d],R[%d]",idx,opcode[op],r,l,m);
-		}break;
-		case MUL:{
-			CompilerStdout(vm->out_fp,"%4d\t%s R[%d],R[%d],R[%d]",idx,opcode[op],r,l,m);
-		}break;
-		case DIV:{
-			CompilerStdout(vm->out_fp,"%4d\t%s R[%d],R[%d],R[%d]",idx,opcode[op],r,l,m);
-		}break;
-		case ODD:{
-			CompilerStdout(vm->out_fp,"%4d\t%s R[%d],%d,%d",idx,opcode[op],r,l,m);
-		}break;
-		case MOD:{
-			CompilerStdout(vm->out_fp,"%4d\t%s R[%d],R[%d],R[%d]",idx,opcode[op],r,l,m);
-		}break;
-		case EQL:{
-			CompilerStdout(vm->out_fp,"%4d\t%s R[%d],R[%d],R[%d]",idx,opcode[op],r,l,m);
-		}break;
-		case NEQ:{
-			CompilerStdout(vm->out_fp,"%4d\t%s R[%d],R[%d],R[%d]",idx,opcode[op],r,l,m);
-		}break;
-		case LSS:{
-			CompilerStdout(vm->out_fp,"%4d\t%s R[%d],R[%d],R[%d]",idx,opcode[op],r,l,m);
-		}break;
-		case LEQ:{
-			CompilerStdout(vm->out_fp,"%4d\t%s R[%d],R[%d],R[%d]",idx,opcode[op],r,l,m);
-		}break;
-		case GTR:{
-			CompilerStdout(vm->out_fp,"%4d\t%s R[%d],R[%d],R[%d]",idx,opcode[op],r,l,m);
-		}break;
-		case GEQ:{
-			CompilerStdout(vm->out_fp,"%4d\t%s R[%d],R[%d],R[%d]",idx,opcode[op],r,l,m);
-		}break;
-		default:{
-			logerror("The opcode is wrong,please double check");
-			return -1;
-		}
-	}
-	return 0;
+	return unparseIr(vm->out_fp,idx,ir);
 }
 static inline void printVMState(struct virtualMachine *vm){
 	int i = 0;
@@ -467,20 +391,17 @@ static inline int load_code(struct virtualMachine *vm,char *path){
 
 static inline void exit_vm(struct virtualMachine *vm)
 {
-	
+	logdebug("virtual machine exist successfully\n");
+	return;
 }
 
-struct virtualMachine* init_vm(FILE *out){
-
-	
+struct virtualMachine* init_vm(){
 	virtualMachine_t *vm = (virtualMachine_t *)calloc(1,sizeof(virtualMachine_t));
 	if(vm == NULL){
 		logerror("Apply for memory for Virtual Machine failed\n");
 		return NULL;
 	}
-
-	vm->out_fp = out;
-
+	vm->out_fp = NULL;
 	vm->sp = 0;
 	vm->bp = 1;
 	vm->pc = 0;
@@ -516,7 +437,7 @@ struct virtualMachine* init_vm(FILE *out){
 	vm->run = run_vm;
 	vm->exit = exit_vm;	
 	vm->status = IDLE;
-
+	logdebug("Virtual Machine initial successfully\n");
 	return vm;
 }
 

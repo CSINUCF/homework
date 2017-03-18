@@ -6,20 +6,20 @@ int main(int argc, char* argv[]){
 	int i = 0;
 	SymTable_T *symbol = SymTable_init(20);
 	for(i=0;i<10;i++){
-		//loginfo("[%d] - %s\t%p\n",i,keys[i],&keys[i]);
-		symbol->put(symbol,keys[i],(void*)&keys[i]);
+		loginfo("[%d] - %s\t%p\n",i,keys[i],&keys[i]);
+		symbol->put(symbol,keys[i],i,(void*)&keys[i]);
 	}
 
-	//symbol->printinfo(symbol,1);
+	symbol->printinfo(symbol,1);
 
 
 
 	for(i=0;i<10;i++){
 
-		symbol->remove(symbol,keys[i]);
+		symbol->remove(symbol,keys[i],i);
 	}
 
-	//symbol->printinfo(symbol,1);
+	symbol->printinfo(symbol,1);
 
 	
 	symbol->clean(symbol);

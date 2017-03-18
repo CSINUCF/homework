@@ -1,5 +1,4 @@
-#include "../include/scanner.h"
-
+#include "../include/parse.h"
 int main(int argc, char* argv[]){
 	char *path = NULL;
 	switch(argc){
@@ -18,7 +17,7 @@ int main(int argc, char* argv[]){
 		}
 	}
 
-
+	
 	
 	FILE* fin = fopen(path,"r");
 	if(fin == NULL){
@@ -26,27 +25,21 @@ int main(int argc, char* argv[]){
 		return -1;
 	}
 	loginfo("read file successfuly\n");
-	fclose(fin);
 
+	struct Parse *p = parse_init(NULL);
+	if(p != NULL){
+		p->run(p,fin);
+		p->unParsePrint(p,NULL);
+		p->exit(p);
+	}else{
+		logerror("init a parse failed\n");
+	}
+
+	free(p);
 
 	
-	Scanner_t *scanner = scanner_init(NULL);
-	if(scanner == NULL){
-		logerror("init a scanner failed\n");
-		return -1;
-	}
-	scanner->run(scanner,path);
-
-	scanner->printLexmeList(scanner,path);
-
-	struct SymTable *symbolTable = scanner->symbolTable;
-
-	symbolTable->printinfo(symbolTable,2);
-
-	scanner->exit(scanner);
-
-	free(scanner);
-
+	fclose(fin);
+	
 	return 0;
 }
 
