@@ -2,24 +2,23 @@
 #define GENCODE_H
 #include "common.h"
 #include "parse.h"
-
-typedef struct GenCode{
-	instruction_t generatedCode[MAX_CODE_SETS][MAX_CODE_LENGTH];
-	int instructionCount[MAX_CODE_SETS];
-	int inUse[MAX_CODE_SETS];
-}GenCode_t;
+/**************************************************************************************************
+<It is project about Compiler for PL/0>
+Copyright (C) <2017>  <Bingbing Rao> <Bing.Rao@outlook.com>
+@https://github.com/CSINUCF
 
 
-int generate(int mcodeDirective);
+This program is free software: you can redistribute it and/or modify it under the terms 
+of the GNU General Public License as published by the Free Software Foundation, 
+either version 3 of the License, or (at your option) any later version.
 
-void prepareMcode();
-void printMcode(int mcodeDirective);
-void putInstruction(struct instruction instruction);
+This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; 
+without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR 
+PURPOSE.  See the GNU General Public License for more details.
 
-void appendCode(int set, int op,int r,int l,int m);
-void prependCode(int set, int op,int r,int l,int m);
-void insertCode(int set, int op, int r,int l, int m, int index);
-void makeSpaceInCode(int set, int size, int index);
+You should have received a copy of the GNU General Public License along with this program.
+If not, see <http://www.gnu.org/licenses/>.
+*/
 
 void generateLiteral(int set,int r, int value);
 void generateLoad(int set, int r,struct Symbol *ident, int currentLevel);
@@ -40,8 +39,17 @@ void generateHalt(int set);
 
 int getCodeLength(int set);
 void changeM(int set, int index, int m);
-int getFreeSet();
 void printProcedureCode();
 
+int generateMachineCode(FILE* mcode);
+void prepareMcode();
 
+void printProcedureCode(int option,FILE *output);
+void printMcode(FILE* mcode);
+void putInstruction(struct instruction instruction,FILE* mcode);
+
+void appendCode(int set, int op,int r,int l,int m);
+void prependCode(int set, int op,int r,int l,int m);
+void insertCode(int set, int op, int r,int l, int m, int index);
+void makeSpaceInCode(int set, int size, int index);
 #endif

@@ -11,7 +11,7 @@ export CC BIN OBJS_DIR BIN_DIR ROOT_DIR
 CUR_SOURCE=${wildcard *.c}
 CUR_OBJS=${patsubst %.c, %.o, $(CUR_SOURCE)}
 
-all:build test
+all:build test compile
 
 ################################################               
 #		    build all c files          #
@@ -34,21 +34,27 @@ $(CUR_OBJS):%.o:%.c
 	$(CC) -c $^ -o $(ROOT_DIR)/$(OBJS_DIR)/$@
 
 
+
+#build final compile file
+compile:build build_PL0
+
+
 ###################################################################################	
 #Build a driver execute file
 ###################################################################################	
 DRIVEROBJS=${OBJS_DIR}/compilerDriver.o ${OBJS_DIR}/virtualMachine.o ${OBJS_DIR}/scanner.o ${OBJS_DIR}/dfa.o ${OBJS_DIR}/symbolTable.o ${OBJS_DIR}/parse.o ${OBJS_DIR}/parserInit.o ${OBJS_DIR}/unparse.o ${OBJS_DIR}/gencode.o ${OBJS_DIR}/printAST.o
-compile:${DRIVEROBJS}
-	${CC} -o ${BIN_DIR}/$@ $^
-#	${BIN_DIR}/$@ -i ${TEST_INPUT}/dfa.txt
+build_PL0:${DRIVEROBJS}
+	${CC} -o ${BIN_DIR}/compile $^
 
 ###################################################################################
 ###################################################################################	
 
-test:build test_vm test_scanner test_symbol
+
+# build all test and execute 
+test:build test_vm test_scanner test_parse
 
 ################################################               
-#		    Virtual Machine Test       #
+#		    Virtual Machine Test
 ################################################
 VMOBJS=${OBJS_DIR}/test_vm.o ${OBJS_DIR}/virtualMachine.o
 test_vm:${VMOBJS}
@@ -59,7 +65,7 @@ test_vm:${VMOBJS}
 
 	
 ################################################               
-#		    Scanner Test               #
+#		    Scanner Test
 ################################################
 SCANNEROBJS=${OBJS_DIR}/test_scanner.o ${OBJS_DIR}/scanner.o ${OBJS_DIR}/dfa.o ${OBJS_DIR}/symbolTable.o
 test_scanner:${SCANNEROBJS}
@@ -68,16 +74,7 @@ test_scanner:${SCANNEROBJS}
 
 
 ################################################               
-#		    symbol Table Test          #
-################################################
-SYMBOLOBJS=${OBJS_DIR}/test_symtable.o ${OBJS_DIR}/symbolTable.o
-test_symbol:${SYMBOLOBJS}
-	${CC} -o ${BIN_DIR}/$@ $^
-	${BIN_DIR}/$@
-
-
-################################################               
-#		    symbol parse Test          #
+#		    parse Test
 ################################################
 PARSEOBJS=${OBJS_DIR}/test_parser.o ${OBJS_DIR}/symbolTable.o ${OBJS_DIR}/parse.o ${OBJS_DIR}/parserInit.o ${OBJS_DIR}/unparse.o ${OBJS_DIR}/printAST.o
 test_parse:${PARSEOBJS}

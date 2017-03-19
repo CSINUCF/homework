@@ -1,3 +1,19 @@
+/**************************************************************************************************
+<It is project about Compiler for PL/0>
+Copyright (C) <2017>  <Bingbing Rao> <Bing.Rao@outlook.com>
+@https://github.com/CSINUCF
+
+This program is free software: you can redistribute it and/or modify it under the terms 
+of the GNU General Public License as published by the Free Software Foundation, 
+either version 3 of the License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; 
+without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR 
+PURPOSE.  See the GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License along with this program.
+If not, see <http://www.gnu.org/licenses/>.
+*/
 #include "../include/parse.h"
 
 extern char *opSymbol[];
@@ -286,10 +302,6 @@ void programPrintAST(struct Parse *this,FILE *stdout){
 }
 void printAST(struct Parse *this,FILE *stdout){
 	this->stdout = stdout;
-	if(this->stdout == NULL){
-		loginfo("The output will be redirected to the console\n");
-	}else{
-		loginfo("The output will be redirected to a file\n");
-	}	
 	programPrintAST(this,this->stdout);
+	this->stdout = NULL;
 }

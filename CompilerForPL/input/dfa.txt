@@ -1,19 +1,22 @@
 const m = 7, n = 85;  
-var  i,x,y,z,q,r;  
-procedure mult; 
-  var a, b;  
-  begin 
-     a := x;  b := y; z := 0;   
-     while b > 0 do    
-     begin 
-        if odd x then z := z+a;       
-           a := 2*a; 
-           b := b/2
-     end   
-  end;
-
+var  i,x,y,z,q,r;
+procedure mult;
+	var a,b;
+	begin
+		a := x+4;
+		b := y;
+	end;
+procedure sub;
+	var c,d;
+	begin
+		c := x+4;
+		d := b+i;
+		call mult;
+	end;	
 begin
-  x := m;
-  y := n;
-  call mult
+  x := m+n*5;
+  y := n+3;
+  q := 4;
+  r := x*q;
+  call sub;
 end.

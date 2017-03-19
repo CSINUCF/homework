@@ -1,10 +1,22 @@
 #ifndef COMMON_H
 #define COMMON_H
+/**************************************************************************************************
+<It is project about Compiler for PL/0>
+Copyright (C) <2017>  <Bingbing Rao> <Bing.Rao@outlook.com>
+@https://github.com/CSINUCF
 
-/***
- * @Author: Bingbing Rao
- * @E-mail: Bing.Rao@outlook.com
- */
+
+This program is free software: you can redistribute it and/or modify it under the terms 
+of the GNU General Public License as published by the Free Software Foundation, 
+either version 3 of the License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; 
+without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR 
+PURPOSE.  See the GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License along with this program.
+If not, see <http://www.gnu.org/licenses/>.
+*/
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -30,7 +42,7 @@
 #define DEBUG	0 //non-zero to print out debug info
 
 #define loginfo(format, ...)\
-	printf("INFO %s\t" format,__func__,##__VA_ARGS__)
+	printf("INFO %s " format,__func__,##__VA_ARGS__)
 
 #define logpretty(format, ...)\
 	printf(format,##__VA_ARGS__)
@@ -274,7 +286,7 @@ static inline FILE *fileCreateAndOpen(char *path){
 static inline void throwError(int errorType)
 {
 
-    loginfo("Error %d: ", errorType);
+    logpretty("\tError %d: ", errorType);
 
     switch (errorType) {
     case 1:

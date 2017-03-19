@@ -1,98 +1,170 @@
+/**************************************************************************************************
+<It is project about Compiler for PL/0>
+Copyright (C) <2017>  <Bingbing Rao> <Bing.Rao@outlook.com>
+@https://github.com/CSINUCF
+
+
+This program is free software: you can redistribute it and/or modify it under the terms 
+of the GNU General Public License as published by the Free Software Foundation, 
+either version 3 of the License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; 
+without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR 
+PURPOSE.  See the GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License along with this program.
+If not, see <http://www.gnu.org/licenses/>.
+*/
 #include "../include/symtable.h"
 
-/*
- * http://www.cse.yorku.ca/~oz/hash.html
- */
-int hashcode(struct SymTable *this,char *key,int lexical){
+int hashcode(struct SymTable *this,char *key){
 	unsigned long hash = 5381;
 	int c;
 
 	while (c = *key++)
 		hash = ((hash << 5) + hash) + c; /* hash * 33 + c */
 
-	  return (hash+lexical)%this->numsBucket;
+	  return (hash)%this->numsBucket;
 }
 
-boolean _contain(struct SymTable *this,char *key,int lexical){
-	assert(this != NULL);
-	assert(key != NULL);
-	int hashValue = this->getHashValue(this,key,lexical);
-	SymTableNode_T * curNode = this->Buckets[hashValue];
-	if((curNode != NULL)&&(strcmp(curNode->Key,key) == 0))
+boolean compareDataType(DataType *left,DataType *right){
+	if((strcmp(left->name,right->name) == 0)&&
+	   (left->kind == right->kind)&&
+	   (left->level == right->level)&&
+	   (left->addr == right->addr)){
+	   	logerror("name[%s-%s],kind[%d-%d],level[%d-%d],addr[%d-%d],value[%d,%d]\n",
+	   				left->name,right->name,
+	   				left->kind,right->kind,
+	   				left->level,right->level,
+	   				left->addr,right->addr,
+	   				left->val,right->val);
 		return TRUE;
-	else{
+	}else{
 		return FALSE;
 	}
 }
-
-boolean _put(struct SymTable *this,char *key,int lexical,void *value){
-	SymTableNode_T* newNode = NULL;
-	
+boolean _contain(struct SymTable *this,char *key,DataType *value){
+	SymTableNode_T * symbolTable = this->getSymbolTable(this,key);
+	if(symbolTable == NULL){
+		return FALSE;
+	}else{
+		struct SymbolNode *ptr = symbolTable->SymNodeList;
+		while(ptr != NULL){
+			if(compareDataType(ptr->Value,value) == TRUE)
+				return TRUE;
+			ptr = ptr->next;
+		}
+	}	
+	return FALSE;
+}
+boolean _putSymbol(struct SymTable *this,char *key,DataType *value){	
 	assert(this != NULL);
 	assert(key != NULL);
 	assert(value != NULL);
 
-	if(this->numsNode >= this->numsBucket){
+	if(this->numsTable >= this->numsBucket){
 		logerror("The buckets is full[%d,%d], please release or expend the buckets\n",
-				this->numsNode,this->numsBucket);
+				this->numsTable,this->numsBucket);
 		return FALSE;
 	}
 	
-	if(this->contain(this,key,lexical)){
-		// TODO update the value
+	if(this->contain(this,key,value)){
 		loginfo("The key[%s] exist in the table\n",key);
 		return FALSE;
 	}
-
-	newNode = (SymTableNode_T*)calloc(1,sizeof(SymTableNode_T));
+	
+	SymTableNode_T* symbolTable = this->getSymbolTable(this,key);
+	if(symbolTable == NULL){
+		// there is no symbletable with this key,so create it
+		symbolTable = (SymTableNode_T*)calloc(1,sizeof(SymTableNode_T));
+		if(symbolTable == NULL){
+			logerror("Aplly for memory for a new symbol Table node failed\n");
+			return FALSE;
+		}
+		symbolTable->Key = strdup(key);
+		symbolTable->SymNodeList = NULL;
+		symbolTable->tail = NULL;
+		symbolTable->numsNode = 0;
+		symbolTable->PreNode = symbolTable;
+		symbolTable->NextNode = symbolTable;
+		
+		int hashValue = this->getHashValue(this,key);
+		symbolTable->hashValue = hashValue;
+		this->Buckets[hashValue] = symbolTable;
+		
+		if(this->numsTable++ == 0){
+			this->head = symbolTable;
+			this->tail = symbolTable;
+		}else{
+			this->tail->NextNode = symbolTable;
+			symbolTable->NextNode = this->head;
+			this->head->PreNode = symbolTable;
+			symbolTable->PreNode = this->tail;
+			this->tail = symbolTable;
+		}
+	}
+	struct SymbolNode *newNode = (SymbolNode_t*)calloc(1,sizeof(SymbolNode_t));
 	if(newNode == NULL){
 		logerror("Aplly for memory for a new symbol node failed\n");
 		return FALSE;
-	}
-	
-	
-	newNode->Key = (char *)calloc(1,strlen(key)+1);
-	if(newNode->Key == NULL){
-		logerror("Aplly for memory to hold the new key failed\n");
-		free(newNode);
-		return FALSE;
-	}
-
-	strcpy(newNode->Key,key);
-	newNode->Value = value;
-	newNode->PreNode = newNode;
-	newNode->NextNode = newNode;
-	
-	int hashValue = this->getHashValue(this,key,lexical);
-	newNode->hashValue = hashValue;
-	this->Buckets[hashValue] = newNode;
-	
-	if(this->numsNode == 0){
-		this->head = newNode;
-		this->tail = newNode;
 	}else{
-		this->tail->NextNode = newNode;
-		newNode->NextNode = this->head;
-		this->head->PreNode = newNode;
-		newNode->PreNode = this->tail;
-		this->tail = newNode;
+		newNode->next = NULL;
+		newNode->Value = value;
 	}
-	
-	this->numsNode++;
+	if(symbolTable->SymNodeList == NULL){
+		symbolTable->SymNodeList = newNode;
+	}else{
+		symbolTable->tail->next = newNode;
+	}		
+	symbolTable->tail = newNode;
+	this->totalNodes += ++symbolTable->numsNode;
 	
 	return TRUE;
 }
 
-void* _getValue(struct SymTable *this,char *key,int lexical){
-	if(this->contain(this,key,lexical) == FALSE){
-		logerror("The key[%s] does not exist in the table\n",key);
-		return NULL;
-	}
-	int hashValue = this->getHashValue(this,key,lexical);
-	return this->Buckets[hashValue]->Value;
+SymTableNode_T *_getSymbolTable(struct SymTable *this,char *key){
+	int hashValue = this->getHashValue(this,key);
+	return this->Buckets[hashValue];
 }
 
+DataType* _getSymbol(struct SymTable *this,char *key,int currentLevel){
+	SymTableNode_T* symbolTable = this->getSymbolTable(this,key);
+	DataType *tmp = NULL;
+	if(symbolTable != NULL){
+		struct SymbolNode *ptr = symbolTable->SymNodeList;
+		while(ptr != NULL){
+			if(tmp == NULL){
+				tmp = ptr->Value;
+			}else if((ptr->Value->level <= currentLevel)&&
+					(ptr->Value->level - currentLevel > tmp->level - currentLevel)){
+				tmp = ptr->Value;
+			}
+			ptr = ptr->next;
+		}
+	}
+	return tmp;
+}
+int _getNumsOfsymbolTable(struct SymTable *this){
+	return this->numsTable;
+}
 
+int _getNumsOfsymbolWithSameKey(struct SymTable *this,char *key){
+	SymTableNode_T* symbolTable = this->getSymbolTable(this,key);
+	if(symbolTable == NULL){
+		logerror("There is no symbol table with this key[%s]\n",key);
+		return 0;
+	}else{
+		return symbolTable->numsNode;
+	}
+}
+int _getNumsOfsymbol(struct SymTable *this){
+	
+	return this->totalNodes;
+}
+int _getNumsOfBuckets(struct SymTable *this){
+	return this->numsBucket;
+}
+#if 0
 void *_update(struct SymTable *this,char *key,int lexical,void *value){
 	
 	if(this->contain(this,key,lexical) == FALSE){
@@ -142,75 +214,66 @@ void *_remove(struct SymTable *this,char *key,int lexical)
 	this->numsNode--;
 	return oldValue;
 }
-
-
-int _getNumsOfsymbol(struct SymTable *this){
-	return this->numsNode;
-}
-int _getNumsOfBuckets(struct SymTable *this){
-	return this->numsBucket;
-}
-
-
-void SymTable_clean(struct SymTable *this){
-
+#endif
+void SymTable_exit(struct SymTable *this){
 	int i = 0;
-	SymTableNode_T *cur = NULL;
+	SymTableNode_T *curTable = NULL;
+	struct SymbolNode *ptr = NULL;
+	struct SymbolNode *del = NULL;
 	for(i=0;i<this->numsBucket;i++){
-		cur = this->Buckets[i];
-		if(cur != NULL){
-			free(cur->Key);
-			if(cur->Value != NULL){
-				free(cur->Value);
+		curTable = this->Buckets[i];
+		if(curTable != NULL){
+			ptr = curTable->SymNodeList;
+			while(ptr != NULL){
+				del = ptr;
+				ptr = ptr->next;
+				free(del->Value);
+				free(del);
 			}
-			free(cur);
+			free(curTable);
 		}
 	}
 	free(this->Buckets);
 	logdebug("symbol table exit successfully\n");
 	return;
 }
-void _outputSymTable(struct SymTable *this,FILE *out){
-
-}
-
-
-void SymTable_print(struct SymTable *this,int option){
+void SymTable_print(struct SymTable *this,int option,FILE *out){
 	int i = 0;
 	SymTableNode_T *cur = NULL;
-	Symbol_t* symbol = NULL;
+	DataType* symbol = NULL;
 
-	loginfo("The Symbol Table\t");
-	logpretty("numOfSymbol:%d, numOfBucket:%d\n",this->numsNode,this->numsBucket);
-	if(this->numsNode !=0){
-		loginfo("head:{key[%s],value[%p]}\ttail{key[%s],value[%p]}\n",
-			this->head->Key,this->head->Value,this->tail->Key,this->tail->Value);
+	CompilerStdout(out,"The Symbol Table\t");
+	CompilerStdout(out,"numOfSymbol:%d,numsOfSymbolTable[%d],numOfBucket:%d\n",
+		this->totalNodes,this->numsTable,this->numsBucket);
+	if(this->numsTable != 0){
+		CompilerStdout(out,"head:{key[%s]}\ttail{key[%s]}\n",this->head->Key,this->tail->Key);
 	}
 	switch (option){
 		case 1:{
-			// print all buckest
 			for(i=0;i<this->numsBucket;i++){
-				loginfo("Bucket[%d]\t-",i);
 				cur = this->Buckets[i];
 				if(cur != NULL){
-					logpretty("Symbol{key[%s],value[%p],pre-key[%s],next-key[%s]}",
-						cur->Key,cur->Value,cur->PreNode->Key,cur->NextNode->Key);
+					CompilerStdout(out,"SymbolTable{key[%s],hashValue[%d],numsOfSymbol[%d],previous[%s],next[%s]}}\n",
+						cur->Key,cur->hashValue,cur->numsNode,cur->PreNode->Key,cur->NextNode->Key);				
+					struct SymbolNode *ptr = cur->SymNodeList;
+					while(ptr != NULL){
+					CompilerStdout(out,"  |-Symbol {Name[%s],\tkind[%d],\tvalue[%d],\tlevel[%d],\taddr[%d]}\n",
+						ptr->Value->name,ptr->Value->kind,ptr->Value->val,ptr->Value->level,ptr->Value->addr);					
+						ptr = ptr->next;
+					}
+					CompilerStdout(out,"\n");
 				}
-				logpretty("\n");
 			}
 		}break;
 		case 2:{
 			cur = this->head;
 			do{
-				if(cur != NULL){
-					symbol = (Symbol_t*)cur->Value;
-					logpretty("Symbol Entry{Hash[%d],\tKey[%s],\tkind[%d],\tvalue[%d],\tlevel[%d],\taddr[%d]}\n",
-							cur->hashValue,symbol->name,symbol->kind,symbol->val,symbol->level,symbol->addr);
-					
+				if(cur != NULL){					
+					CompilerStdout(out,"SymbolTable{key[%s],hashValue[%d],numsOfSymbol[%d],previous[%s],next[%s]}}\n",
+						cur->Key,cur->hashValue,cur->numsNode,cur->PreNode->Key,cur->NextNode->Key);
 					cur = cur->NextNode;
 				}
 			}while(cur != this->head);
-
 		}break;
 		case 3:{
 
@@ -222,10 +285,11 @@ void SymTable_print(struct SymTable *this,int option){
 }
 
 
+
 struct SymTable *SymTable_init(int bucketCount){
 
 	SymTable_T* symTable = NULL;
-	
+	int i = 0;
 	symTable = (SymTable_T*)calloc(1,sizeof(SymTable_T));
 	if(symTable == NULL){
 		logerror("Aplly for memory for a new symbol table failed\n");
@@ -238,24 +302,32 @@ struct SymTable *SymTable_init(int bucketCount){
 		free(symTable);
 		return NULL;
 	}
-	
+	for(i = 0;i<bucketCount;i++){
+		symTable->Buckets[i] = NULL;
+	}
 	symTable->head = NULL;
 	symTable->tail = NULL;
-	symTable->numsNode = 0;
+	symTable->numsTable = 0;
+	symTable->totalNodes = 0;
 	symTable->numsBucket = bucketCount;
-
+#if 1	
 	/*init operation*/
 	symTable->getHashValue = hashcode;
 	symTable->contain = _contain;
-	symTable->put = _put;
-	symTable->get = _getValue;
-	symTable->update = _update;
-	symTable->remove = _remove;
+	symTable->putSymbol= _putSymbol;
+	
+	symTable->getSymbolTable = _getSymbolTable;
+	symTable->getSymbol = _getSymbol;
+	symTable->getNumsOfsymbolTable = _getNumsOfsymbolTable;
+	symTable->getNumsOfsymbolWithSameKey = _getNumsOfsymbolWithSameKey;
 	symTable->getNumsOfsymbol = _getNumsOfsymbol;
 	symTable->getNumsOfBuckets = _getNumsOfBuckets;
-	symTable->clean = SymTable_clean;
+
+	symTable->exit = SymTable_exit;
 	symTable->printinfo = SymTable_print;
-	symTable->outputSymTable = _outputSymTable;
 	logdebug("Symbol Table initial successfully\n");
+#endif
 	return symTable;
 }
+
+

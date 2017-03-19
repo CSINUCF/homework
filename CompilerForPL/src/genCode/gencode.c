@@ -1,4 +1,26 @@
+/**************************************************************************************************
+<It is project about Compiler for PL/0>
+Copyright (C) <2017>  <Bingbing Rao> <Bing.Rao@outlook.com>
+@https://github.com/CSINUCF
+
+
+This program is free software: you can redistribute it and/or modify it under the terms 
+of the GNU General Public License as published by the Free Software Foundation, 
+either version 3 of the License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; 
+without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR 
+PURPOSE.  See the GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License along with this program.
+If not, see <http://www.gnu.org/licenses/>.
+
+@Reference:https://github.com/ZGorlock/PM0-Compiler
+*/
+
 #include "../include/gencode.h"
+
+
 
 
 //Global Variables
@@ -7,12 +29,12 @@ int finalInstructionCount = 0;
 
 struct instruction generatedCode[MAX_CODE_SETS][MAX_CODE_LENGTH]; //holds the compiled mcode sets
 int instructionCount[MAX_CODE_SETS]; //stores the number of instructions in the code
-int inUse[MAX_CODE_SETS]; //stores whether a set is in use or not.
-
-FILE* mcode; //file pointer to the mcode file
 
 #define FINAL_CODE -1
 
+#define CodeGenerate
+
+// create a new  instruction.
 struct instruction newInstruction(int op,int r,int l,int m)
 {
     struct instruction i;
@@ -22,35 +44,46 @@ struct instruction newInstruction(int op,int r,int l,int m)
     i.m = m;
     return i;
 }
-//Funcitons
+void printProcedureCode(int option,FILE *output){
+#ifdef CodeGenerate
+	int i,j;
+	switch(option){
+		case 1:{			
+			for(i=0;i<MAX_CODE_SETS;i++){
+				for(j=0;j<instructionCount[i];j++){
+					unparseIr(output,i,&generatedCode[i][j]);
+					CompilerStdout(output,"\n");
+				}
+				CompilerStdout(output,"\n");
+			}
+		}break;
+		case 2:{			
+			for (i = 0; i < finalInstructionCount; i++) {
+				unparseIr(output,i,&finalCode[i]);
+				CompilerStdout(output,"\n");
+			}
+		}break;
+		default:{
+			loginfo("please input option with 1 (print machine code for each set) or 2 (print final machine code)\n");
+		}
+		
 
-/*
-    Produces the mcode file.
+	}
+#endif
+}
 
-    Output:
-        0 if there was an error.
-        1 otherwise.
-*/
 
-int generate(int mcodeDirective)
+
+// combine machine code of each procedure into final code
+int generateMachineCode(FILE* mcode)
 {
     prepareMcode();
-#if 0
-    if (!openMcodeFile(&mcode, "w"))
-        return 0;
-
-    printMcode(mcodeDirective);
-
-    if (!closeMcodeFile(&mcode))
-        return 0;
-
-    if (DEBUG) printf("\n");
-#endif
-    return 1;
+	printMcode(mcode);
+    return 0;
 }
 
 /*
-    Combines code sets into the final mcode.
+    Combines machine code of each procedure into the final mcode.
 */
 void prepareMcode()
 {
@@ -82,53 +115,26 @@ void prepareMcode()
     }
 }
 
-void printProcedureCode(){
-	int i,j;
-	for(i=0;i<MAX_CODE_SETS;i++){
-		for(j=0;j<instructionCount[i];j++){
-			unparseIr(NULL,i,&generatedCode[i][j]);
-			logpretty("\n");
-		}
-	}
-
-}
 /*
     Prints the mcode instructions to the mcode file.
 */
-void printMcode(int mcodeDirective)
+void printMcode(FILE* mcode)
 {
     int i;
     for (i = 0; i < finalInstructionCount; i++) {
-        if (DEBUG) printf("Producing Instruction: %d %d %d\n", finalCode[i].op, finalCode[i].l, finalCode[i].m);
-
-        putInstruction(finalCode[i]);
-
-        if (mcodeDirective == 1) {
-            printf("%d %d %d\n", finalCode[i].op, finalCode[i].l, finalCode[i].m);
-        }
+        putInstruction(finalCode[i],mcode);
     }
 }
 
 /*
     Prints an instruction to the mcode file.
-
-    Input:
-        instruction : The instruction to print.
 */
-void putInstruction(struct instruction instruction)
+void putInstruction(struct instruction instruction,FILE* mcode)
 {
     CompilerStdout(mcode, "%d %d %d %d\n", instruction.op,instruction.r,instruction.l, instruction.m);
 }
 
-/*
-    Adds an instruction to the end of the instruction array.
-
-    Input:
-        set : The code set, -1 for final code set.
-        op : The op-code of the instruction to add.
-        l : The lexigraphical level of the instruction to add.
-        m : The data element of the instruction to add.
-*/
+/* Adds an instruction to the end of the instruction array.*/
 void appendCode(int set, int op,int r,int l,int m)
 {
     if (set == FINAL_CODE) {
@@ -141,30 +147,13 @@ void appendCode(int set, int op,int r,int l,int m)
     }
 }
 
-/*
-    Adds an instruction at the beginning of the instruction array.
-    
-    Input:
-        set : The code set, -1 for final code set.
-        op : The op-code of the instruction to add.
-        l : The lexigraphical level of the instruction to add.
-        m : The data element of the instruction to add.
-*/
+/*Adds an instruction at the beginning of the instruction array*/
 void prependCode(int set,int op,int r,int l,int m)
 {
     insertCode(set,op,r,l,m,0);
 }
 
-/*
-    Adds an instruction at a certain index of the instruction array.
-    
-    Input:
-        set : The code set, -1 for final code set.
-        op : The op-code of the instruction to add.
-        l : The lexigraphical level of the instruction to add.
-        m : The data element of the instruction to add.
-        index : The index of where to insert the instruction.
-*/
+/*Adds an instruction at a certain index of the instruction array.*/
 void insertCode(int set, int op, int r,int l,int m, int index)
 {
     if (set == FINAL_CODE) {
@@ -194,14 +183,7 @@ void insertCode(int set, int op, int r,int l,int m, int index)
     }
 }
 
-/*
-    Makes space for new instructions in the instruction array.
-
-    Input:
-        set : The code set, -1 for final code set.
-        size : The size of the space to make.
-        index : The starting index of the space.
-*/
+/* Makes space for new instructions in the instruction array.*/
 void makeSpaceInCode(int set, int size, int index)
 {
     if (size <= 0)
@@ -228,11 +210,13 @@ void makeSpaceInCode(int set, int size, int index)
 }
 
 /*
-    Produces code for a numerical literal which is load a constant value(literal) m into register r.
+Produces code for a numerical literal which is load a constant value(literal) m into register r.
 */
 void generateLiteral(int set,int r,int value)
 {
+#ifdef CodeGenerate
     appendCode(set,LIT,r,0,value);
+#endif
 }
 /*
     Produces code for a return.
@@ -242,55 +226,47 @@ void generateLiteral(int set,int r,int value)
 */
 void generateReturn(int set)
 {
+#ifdef CodeGenerate
    	appendCode(set,RTN,0,0,0);
+#endif
 }
 /*
     Produces code for loading a symbol identifier.
-
-    Input:
-        set : The code set, -1 for final code set.
-        ident : The symbol identifier.
-        currentLevel : The current level of the program.
 */
 void generateLoad(int set,int r,struct Symbol *ident, int currentLevel)
 {
+#ifdef CodeGenerate
     appendCode(set,LOD,r,currentLevel - ident->level,ident->addr);
+#endif
 }
 
 /*
     Produces code for storing a symbol identifier value.
-
-    Input:
-        set : The code set, -1 for final code set.
-        ident : The symbol identifier.
-        currentLevel : The current level of the program.
 */
 void generateBecomes(int set,int r,struct Symbol *ident, int currentLevel)
 {
+#ifdef CodeGenerate
     appendCode(set,STO,r,currentLevel - ident->level, ident->addr);
+#endif
 }
 /*
     Produces code for a call.
-
-    Input:
-        set : The code set, -1 for final code set.
-        ident : The procedure identifier.
-        currentLevel : The current level of the program.
 */
 void generateCall(int set, struct Symbol *ident, int currentLevel)
 {
+#ifdef CodeGenerate
     appendCode(set, CAL,0,currentLevel - ident->level, ident->addr);
+#endif
 }
 /*
     Produces code for creating variable space.
 
-    Input:
-        set : The code set, -1 for final code set.
-        space : The number of variables and constants in the block.
 */
 void generateVariableSpace(int set, int space)
 {
+#ifdef CodeGenerate
     prependCode(set,INC,0,0,space);
+#endif
 }
 /*
     Produces code for a generic jump.
@@ -300,7 +276,9 @@ void generateVariableSpace(int set, int space)
 */
 void generateJump(int set)
 {
+#ifdef CodeGenerate
     appendCode(set,JMP,0,0,0);
+#endif
 }
 
 /*
@@ -311,59 +289,51 @@ void generateJump(int set)
 */
 void generateConditionalJump(int set,int r)
 {
+#ifdef CodeGenerate
     appendCode(set,JPC,r,0,0);
+#endif
 }
 /*
     Produces code for a IO read.
-
-    Input:
-        set : The code set, -1 for final code set.
-        ident : The variable identifier.
-        currentLevel : The currentLevel of the program.
 */
 void generateRead(int set,int r,struct Symbol *ident, int currentLevel)
 {
+#ifdef CodeGenerate
     appendCode(set,SIO,r,0, 2);
     appendCode(set, STO,r,currentLevel - ident->level, ident->addr);
+#endif
 }
 
 /*
     Produces code for an IO write.
-
-    Input:
-        set : The code set, -1 for final code set.
-        ident : The identfier.
-        currentLevel : The current level of the program.
 */
 void generateWrite(int set,int r,struct Symbol *ident, int currentLevel,int type)
 {
-	if(type == VAR_S)
+#ifdef CodeGenerate
+	if(type == VAR_S) // VAR_S
     	appendCode(set, LOD,r, currentLevel - ident->level, ident->addr);
-	else if(type == CONST_S)
+	else // CONST_S
 		appendCode(set, LOD,r, 0,ident->val);
     appendCode(set, SIO,r, 0, 1);
+#endif
 }
 
 /*
     Produces code for a halt.
-
-    Input:
-        set : The code set, -1 for final code set.
 */
 void generateHalt(int set)
 {
+#ifdef CodeGenerate
     appendCode(set,SIO,0,0,3);
+#endif
 }
 
 /*
     Produces code for a calculation.
-
-    Input:
-        set : The code set, -1 for final code set.
-        token : The calculation token.
 */
 void generateCalculation(int set,int token,int i,int j, int k)
 {
+#ifdef CodeGenerate
 	int op = 0;
 	switch(token){
 		case plussym: 	op = ADD;	break;
@@ -371,19 +341,16 @@ void generateCalculation(int set,int token,int i,int j, int k)
 		case multsym:	op = MUL;	break;
 		case slashsym:	op = DIV;	break;
 	}
-	
 	appendCode(set,op,i,j,k);
+#endif
 }
 
 /*
     Produces code for a relational operator.
-
-    Input:
-        set : The code set, -1 for final code set.
-        token : The relational operator token.
 */
 void generateRelOp(int set,int token,int i,int j,int k)
 {
+#ifdef CodeGenerate
 	int op = 0;
 	switch(token)
 	{
@@ -396,49 +363,19 @@ void generateRelOp(int set,int token,int i,int j,int k)
 		case geqsym:	op = GEQ;	break;
 	}
 	appendCode(set,op,i,j,k);
+#endif	
 }
 
 /*
     Produces code for a negation.
-
-    Input:
-        set : The code set, -1 for final code set.
 */
 void generateNegation(int set,int i,int j,int k)
 {
+#ifdef CodeGenerate
    appendCode(set,NEG,i,j,k);
+#endif
 }
 
-/*
-    Produces code for a posification.
-
-    Input:
-        set : The code set, -1 for final code set.
-*/
-void generatePosification(int set)
-{
-/*
-    generateLiteral(set,0,generatedCode[set][getCodeLength(set) - 1].m);
-    generateLiteral(set,0,0);
-    //generateCalculation(set, OPR_LSS + (plussym - OPR_ADD));
-
-    generateConditionalJump(set);
-    int j1 = getCodeLength(set) - 1;
-
-    //generateCalculation(set, OPR_NEG + (plussym - OPR_ADD));
-
-    changeM(set, j1, getCodeLength(set));
-    */
-}
-
-
-/*
-    Produces code for preliminary procedure jumps.
-
-    Input:
-        set : The code set, -1 for final code set.
-        space : The number of procedures to add jumps for.
-*/
 void generateProcedureJumps(int set, int space)
 {
     int i;
@@ -447,31 +384,23 @@ void generateProcedureJumps(int set, int space)
 }
 /*
     Returns the code length of a code set.
-
-    Input:
-        set : The code set, -1 for final code set.
-
-    Output:
-        The length of the code set.
 */
 int getCodeLength(int set)
 {
+#ifdef CodeGenerate
     if (set == FINAL_CODE)
         return finalInstructionCount;
     else
         return instructionCount[set];
+#endif
 }
 
 /*
     Edits the M value of an instruction.
-
-    Input:
-        set : The code set, -1 for final code set.
-        index : The index in the code set.
-        m : The new m value.
 */
 void changeM(int set, int index, int m)
 {
+#ifdef CodeGenerate
     if (set == FINAL_CODE) {
         if (index < 0 || index > finalInstructionCount - 1)
             return;
@@ -482,4 +411,5 @@ void changeM(int set, int index, int m)
             return;
         generatedCode[set][index].m = m;
     }
+#endif
 }

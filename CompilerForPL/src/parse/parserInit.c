@@ -1,3 +1,21 @@
+/**************************************************************************************************
+<It is project about Compiler for PL/0>
+Copyright (C) <2017>  <Bingbing Rao> <Bing.Rao@outlook.com>
+@https://github.com/CSINUCF
+
+
+This program is free software: you can redistribute it and/or modify it under the terms 
+of the GNU General Public License as published by the Free Software Foundation, 
+either version 3 of the License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; 
+without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR 
+PURPOSE.  See the GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License along with this program.
+If not, see <http://www.gnu.org/licenses/>.
+*/
+
 #include "../include/parse.h"
 
 
@@ -255,14 +273,11 @@ void run(struct Parse *this,FILE *tFile){
 	this->tokenFile = tFile;
 	this->tokenCount = 0;
 	this->parse(this);
+	this->tokenFile = NULL;
 }
-
-void unParsePrint(struct Parse *this,FILE *stdout){
-	this->stdout = stdout;
-	this->unParse(this);
-
-}
-
+extern void unParsePrint(struct Parse *this,FILE *stdout);
+extern int parse(struct Parse *this);
+extern void printAST(struct Parse *this,FILE *stdout);
 struct Parse * parse_init(struct SymTable *syms){
 	Parse_t *parser = (Parse_t *)calloc(1,sizeof(Parse_t));
 	if(parser == NULL){
@@ -275,7 +290,6 @@ struct Parse * parse_init(struct SymTable *syms){
 	parser->symbolTable = syms;
 	parser->tokenCount = 0;
 	parser->cleanup = cleanup;
-	parser->unParse= unParse;
 	parser->parse = parse;
 	parser->exit = parse_exit;
 	parser->run = run;
