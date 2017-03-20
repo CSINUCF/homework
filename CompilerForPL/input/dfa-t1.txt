@@ -1,7 +1,23 @@
-const m = 7, n = 85;  
-var  i,x,y,z,q,r;  
+const m = 5, n =7;
+var x,y;
+procedure sub;
+	var a;
+	begin
+		read a;
+		x := a + 5;
+	end;
 
+procedure add;
+	var b;
+	begin
+		b := a + 5;
+		write b;
+	end;
+	
 begin
-  x := m;
-  y := n;
+	call sub;
+	write x;
+	y := x + 10;
+	write y;
+	call add;
 end.

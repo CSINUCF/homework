@@ -76,10 +76,10 @@ test_scanner:${SCANNEROBJS}
 ################################################               
 #		    parse Test
 ################################################
-PARSEOBJS=${OBJS_DIR}/test_parser.o ${OBJS_DIR}/symbolTable.o ${OBJS_DIR}/parse.o ${OBJS_DIR}/parserInit.o ${OBJS_DIR}/unparse.o ${OBJS_DIR}/printAST.o
+PARSEOBJS=${OBJS_DIR}/test_parser.o ${OBJS_DIR}/symbolTable.o ${OBJS_DIR}/parse.o ${OBJS_DIR}/parserInit.o ${OBJS_DIR}/unparse.o ${OBJS_DIR}/printAST.o ${OBJS_DIR}/gencode.o ${OBJS_DIR}/virtualMachine.o
 test_parse:${PARSEOBJS}
 	${CC} -o ${BIN_DIR}/$@ $^
-	${BIN_DIR}/$@ -i ${TEST_INPUT}/parse_t1.txt
+	${BIN_DIR}/$@ -i ${TEST_INPUT}/dfa.txt
 
 clean:
 	@rm -rf $(OBJS_DIR)

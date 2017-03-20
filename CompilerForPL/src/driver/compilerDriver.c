@@ -26,34 +26,35 @@ boolean stdoutUnparse = FALSE;
 boolean stdoutVirtm = FALSE;
 
 void driver_run(struct CompilerDriver *this,char *path){
-	
+	int ret = 0;
+	char *tokenFile = "output/tokenFile.txt";remove(tokenFile);
+	char *unParseFile = "output/unParseSrc.txt";remove(unParseFile);
+	char *astFile = "output/ast.txt";remove(astFile);
+	char *mcodeFile = "output/machinecode.txt";remove(mcodeFile);
+	char *mcodeFiletmp = "output/unparsemachinecode.txt";remove(mcodeFiletmp);
+	char *symFile = "output/symbol_table.txt";remove(symFile);
+	char *vmFile = "output/virtualmachine.txt";remove(vmFile);
 	// run scanner to scan the source code and generate token file
-	this->scanner->run(this->scanner,path);
-
+	ret = this->scanner->run(this->scanner,path);
+	if(ret != 0){
+		logerror("Scanner get a wrong lexem\n");
+		return;
+	}
 	if(stdoutToken == TRUE){
 		this->scanner->printLexmeList(this->scanner,path);
 	}
 	
 	//write the current token list to the file which is the input of parser.
-	char *tokenFile = "output/tokenFile.txt";remove(tokenFile);
 	FILE *tokenF = fileCreateAndOpen(tokenFile);
 	this->scanner->outputLexmeList(this->scanner,tokenF);
 	fclose(tokenF);
 
 	// run parser on the token file
 	tokenF = fileCreateAndOpen(tokenFile);
-	this->parse->run(this->parse,tokenF);
+	ret = this->parse->run(this->parse,tokenF);
 	fclose(tokenF);
 
-
-	/*generate machine code*/
-	char *mcodeFile = "output/machinecode.txt";remove(mcodeFile);
-	FILE *mcode = fileCreateAndOpen(mcodeFile);
-	generateMachineCode(mcode); //combine machine code for each procedures into final machine code
-	fclose(mcode);
-
 	
-	char *unParseFile = "output/unParseSrc.txt";remove(unParseFile);
 	if(stdoutUnparse == TRUE){
 		this->parse->unParsePrint(this->parse,NULL);
 	}else{
@@ -62,7 +63,6 @@ void driver_run(struct CompilerDriver *this,char *path){
 		fclose(unParseF);
 	}
 	
-	char *astFile = "output/ast.txt";remove(astFile);
 	if(stdoutAST == TRUE){
 		this->parse->printAST(this->parse,NULL);
 	}else{
@@ -71,7 +71,30 @@ void driver_run(struct CompilerDriver *this,char *path){
 		fclose(astF);
 	}
 
-	char *mcodeFiletmp = "output/unparsemachinecode.txt";remove(mcodeFiletmp);
+	
+	if(stdoutSymbol == TRUE){
+		// Output the details about symbol table to a file
+		this->sym->printinfo(this->sym,1,NULL);
+	}else{		
+		// Output the details about symbol table to a file
+		FILE *symF = fileCreateAndOpen(symFile);
+		this->sym->printinfo(this->sym,1,symF);
+		fclose(symF);
+	}
+		
+	if(ret != 0){
+		logerror("Parser encounter an error\n");
+		return;
+	}
+
+
+	/*generate machine code*/
+	FILE *mcode = fileCreateAndOpen(mcodeFile);
+	generateMachineCode(mcode); //combine machine code for each procedures into final machine code
+	fclose(mcode);
+
+	
+
 	if(stdoutParse == TRUE){
 		// print machien code to the console
 		printProcedureCode(2,NULL);
@@ -88,18 +111,6 @@ void driver_run(struct CompilerDriver *this,char *path){
 		fclose(mcodetmp);
 	}
 	
-	char *symFile = "output/symbol_table.txt";remove(symFile);
-	if(stdoutSymbol == TRUE){
-		// Output the details about symbol table to a file
-		this->sym->printinfo(this->sym,1,NULL);
-	}else{		
-		// Output the details about symbol table to a file
-		FILE *symF = fileCreateAndOpen(symFile);
-		this->sym->printinfo(this->sym,1,symF);
-		fclose(symF);
-	}
-	
-	char *vmFile = "output/virtualmachine.txt";remove(vmFile);
 	if(stdoutVirtm == TRUE){
 		// output the vm trace to the screen
 		this->vm->run(this->vm,mcodeFile,NULL);

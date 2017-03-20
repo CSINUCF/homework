@@ -307,6 +307,8 @@ void blockUnParse(struct blockNode *blk,int t,FILE *stdout){
 //program = block "." .
 void programUnParse(struct Parse *this,FILE *stdout){
 	programNode_t *ast = this->ast;
+	if(ast == NULL)
+		return;
 	blockNode_t *ptr = ast->block;
 	while(ptr != NULL){
 		blockUnParse(ptr,1,stdout);

@@ -43,7 +43,7 @@ If not, see <http://www.gnu.org/licenses/>.
 /*
  * The VM will output the result to the console when you define "OUTPUT_TO_CONSOLE" macro.
  */
-//#define OUTPUT_TO_CONSOLE
+#define OUTPUT_TO_CONSOLE
 
 typedef enum {
 	OUTPUT = 1, //print the data to the console

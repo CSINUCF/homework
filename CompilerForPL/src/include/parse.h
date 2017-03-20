@@ -239,7 +239,7 @@ typedef struct Parse{
 	void (*printAST)(struct Parse *this,FILE *stdout);
 	void (*unParse)(struct Parse *this);
 	void (*cleanup)(struct Parse *this);
-	void (*run)(struct Parse *this,FILE *tFile);
+	int (*run)(struct Parse *this,FILE *tFile);
 	void (*exit)(struct Parse *this);
 	void (*unParsePrint)(struct Parse *this,FILE *stdout);
 }Parse_t;

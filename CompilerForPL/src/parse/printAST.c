@@ -291,7 +291,8 @@ void programPrintAST(struct Parse *this,FILE *stdout){
 	if(ast != NULL){
 		CompilerStdout(stdout,"Program{numBlock: %d\n",ast->numsBlock);
 	}else{
-		CompilerStdout(stdout,"Program{numBlock: %d\n",0);
+		CompilerStdout(stdout,"Program{numBlock: %d}\n",0);
+		return;
 	}
 	blockNode_t *ptr = ast->block;
 	while(ptr != NULL){

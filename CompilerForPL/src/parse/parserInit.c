@@ -269,11 +269,13 @@ void parse_exit(struct Parse *this){
 	this->cleanup(this);
 }
 
-void run(struct Parse *this,FILE *tFile){
+int run(struct Parse *this,FILE *tFile){
+	int ret = 0;
 	this->tokenFile = tFile;
 	this->tokenCount = 0;
-	this->parse(this);
+	ret = this->parse(this);
 	this->tokenFile = NULL;
+	return ret;
 }
 extern void unParsePrint(struct Parse *this,FILE *stdout);
 extern int parse(struct Parse *this);

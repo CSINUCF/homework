@@ -144,10 +144,10 @@ int programParse(struct Parse *this){
 		logerror("initial root ast tree failed\n");
 		return -1;
 	}else{
+		this->ast = prog;
 		prog->numsBlock = 0;
 		prog->block = (blockNode_t*)calloc(1,sizeof(blockNode_t));
 		if(prog->block == NULL){
-			free(prog);
 			logerror("inital block failed\n");
 			return -1;
 		}else{
@@ -168,11 +168,11 @@ int programParse(struct Parse *this){
 		logerror("\n");return ret;
 	}
 	if(curToken->cToken != periodsym){
-		logerror("The current token is:[%d,%s]\n",curToken->cToken,opSymbol[curToken->cToken]);
+		logerror("Token:[%d,%s]",curToken->cToken,opSymbol[curToken->cToken]);
 		throwError(9);
+		return -1;
 	}	
 	prog->numsBlock++;
-	this->ast = prog;
 	//TODO generateVariableSpace
     generateVariableSpace(currentProcedure,prog->block->numsVarDecl+ 4);
 	
@@ -206,25 +206,33 @@ int blockParse(struct Parse *this,struct blockNode *blk){
 			}
 			getToken(this); // get ident
 			if(curToken->cToken != identsym){
-				logerror("The current token is:[%d,%s]\n",curToken->cToken,opSymbol[curToken->cToken]);
+				logerror("Token:[%d,%s]",curToken->cToken,opSymbol[curToken->cToken]);
 				throwError(4);
+				return -1;
 			}else{
 				cont->ident.string = strdup(curToken->cTokenVal.string);
 			}
 			getToken(this); // get =
 			if(curToken->cToken != eqlsym){
-				logerror("The current token is:[%d,%s]\n",curToken->cToken,opSymbol[curToken->cToken]);
+				logerror("Token:[%d,%s]",curToken->cToken,opSymbol[curToken->cToken]);
 				if(curToken->cToken == becomessym){
 					throwError(1);
 				}else{
 					throwError(3);
-				}				
+				}
+				return -1;
 			}
 			getToken(this); // get number
 			if(curToken->cToken != numbersym){
-				logerror("The current token is:[%d,%s]\n",curToken->cToken,opSymbol[curToken->cToken]);
+				logerror("Token:[%d,%s]",curToken->cToken,opSymbol[curToken->cToken]);
 				throwError(2);
+				return -1;
 			}else{
+				if(curToken->cTokenVal.numeric > MAX_NUMBER){
+					logerror("%d > %d",curToken->cTokenVal.numeric,MAX_NUMBER);
+					throwError(25);
+					return -1;
+				}			
 				cont->numer.value = curToken->cTokenVal.numeric;
 				cont->lexical = globalLevel;
 				cont->paraProc = procedureCount;
@@ -242,8 +250,9 @@ int blockParse(struct Parse *this,struct blockNode *blk){
 			getToken(this); // get comma or semiconlon
 		}while(curToken->cToken == commasym);
 		if (curToken->cToken != semicolonsym){			
-			logerror("The current token is:[%d,%s]\n",curToken->cToken,opSymbol[curToken->cToken]);
+			logerror("Token:[%d,%s]",curToken->cToken,opSymbol[curToken->cToken]);
 			throwError(5);
+			return -1;
 		}
         getToken(this);
 	}
@@ -262,8 +271,9 @@ int blockParse(struct Parse *this,struct blockNode *blk){
 			}
 			getToken(this);// get ident
 			if(curToken->cToken != identsym){
-				logerror("The current token is:[%d,%s]\n",curToken->cToken,opSymbol[curToken->cToken]);
-				throwError(4);	
+				logerror("Token:[%d,%s]",curToken->cToken,opSymbol[curToken->cToken]);
+				throwError(4);
+				return -1;
 			}else{
 				var->ident.string = strdup(curToken->cTokenVal.string);
 				var->lexical = globalLevel;
@@ -284,8 +294,9 @@ int blockParse(struct Parse *this,struct blockNode *blk){
 			getToken(this);// get next token, that is comma or semicon
 		}while(curToken->cToken == commasym);
 		if (curToken->cToken != semicolonsym){
-			logerror("The current token is:[%d,%s]\n",curToken->cToken,opSymbol[curToken->cToken]);
+			logerror("Token:[%d,%s]",curToken->cToken,opSymbol[curToken->cToken]);
 			throwError(5);
+			return -1;
 		}
         getToken(this);
 	}
@@ -303,8 +314,9 @@ int blockParse(struct Parse *this,struct blockNode *blk){
 		}
 		getToken(this); // get ident, the name of proc
 		if(curToken->cToken != identsym){			
-			logerror("The current token is:[%d,%s]\n",curToken->cToken,opSymbol[curToken->cToken]);
-			throwError(4);	
+			logerror("Token:[%d,%s]",curToken->cToken,opSymbol[curToken->cToken]);
+			throwError(4);
+			return -1;
 		}else{
 			proc->ident.string = strdup(curToken->cTokenVal.string);
 			proc->lexical = globalLevel+1;
@@ -316,8 +328,9 @@ int blockParse(struct Parse *this,struct blockNode *blk){
 		}
 		getToken(this);// get next token
 		if(curToken->cToken != semicolonsym){
-			logerror("The current token is:[%d,%s]\n",curToken->cToken,opSymbol[curToken->cToken]);
-			throwError(6);	
+			logerror("Token:[%d,%s]",curToken->cToken,opSymbol[curToken->cToken]);
+			throwError(6);
+			return -1;
 		}
 		getToken(this);// get next token
 		proc->body = calloc(1,sizeof(blockNode_t));
@@ -334,12 +347,6 @@ int blockParse(struct Parse *this,struct blockNode *blk){
     		  Because a porgram is consist of a block, so when parser step in a blcok, which means
     		  there is a new level.
 		 */
-        globalLevel++;
-		ret += blockParse(this,proc->body);
-        globalLevel--;
-		if(ret != 0){ 
-			logerror("\n");return ret;
-		}
 		// add new node to the list
 		if(blk->numsProcDef++ == 0){
 			blk->procDef = proc;
@@ -348,10 +355,17 @@ int blockParse(struct Parse *this,struct blockNode *blk){
 			procP->next = proc;
 			procP = proc;
 		}		
+        globalLevel++;
+		ret += blockParse(this,proc->body);
+        globalLevel--;
+		if(ret != 0){ 
+			logerror("\n");return ret;
+		}
 		if (curToken->cToken != semicolonsym){			
 			// at the end of procedure definition, it should be a semicolon symbol
-			logerror("The current token is:[%d,%s]\n",curToken->cToken,opSymbol[curToken->cToken]);
+			logerror("Token:[%d,%s]",curToken->cToken,opSymbol[curToken->cToken]);
 			throwError(6);
+			return -1;
 		}
 		// at this point, the definition of a precedure is finished and  generate var space
         generateVariableSpace(currentProcedure, proc->body->numsVarDecl+ 4);
@@ -399,6 +413,8 @@ int statementParse(struct Parse *this,statementNode_t *sts){
 			}else{
 				ass->ident.string = strdup(curToken->cTokenVal.string);
 			}
+			sts->super.assigns_p = ass;
+			sts->tag = ASSIGN_S;
 			//TODO get the symbol from table and check
 			struct Symbol *sym = symTable->getSymbol(symTable,ass->ident.string,globalLevel);
 			if(sym == NULL){
@@ -410,8 +426,9 @@ int statementParse(struct Parse *this,statementNode_t *sts){
 			}
 			getToken(this);// get ":="
 			if(curToken->cToken != becomessym){
-				logerror("The current token is:[%d,%s]\n",curToken->cToken,opSymbol[curToken->cToken]);
-				throwError(29);
+				logerror("Token:[%d,%s]",curToken->cToken,opSymbol[curToken->cToken]);
+				throwError(30);
+				return -1;
 			}
 			
 			getToken(this); //get experession
@@ -428,10 +445,7 @@ int statementParse(struct Parse *this,statementNode_t *sts){
 			}
 			// Generate assig code
 			generateBecomes(currentProcedure,register_ptr-1,sym,globalLevel);
-			register_ptr--;//release register when the value has been store into the variable.
-			
-			sts->super.assigns_p = ass;
-			sts->tag = ASSIGN_S;
+			register_ptr--;//release register when the value has been store into the variable.			
 		}break;
 		case callsym: {
 			// "call" ident
@@ -440,28 +454,32 @@ int statementParse(struct Parse *this,statementNode_t *sts){
 				logerror("initial call statement failed\n");
 				return -1;
 			}
+			sts->super.calls_p = call;
+			sts->tag = CALL_S;
 			getToken(this); // get ident
 			if(curToken->cToken != identsym){
-				logerror("The current token is:[%d,%s]\n",curToken->cToken,opSymbol[curToken->cToken]);
+				logerror("Token:[%d,%s]",curToken->cToken,opSymbol[curToken->cToken]);
 				throwError(14);
+				return -1;
 			}else{
 				call->ident.string = strdup(curToken->cTokenVal.string);
-			}
+			}			
 			// get symbol from table and check
 			struct Symbol *sym = symTable->getSymbol(symTable,call->ident.string,globalLevel);
 			if(sym == NULL){
 				logerror("Call Statement [%s,%d]",call->ident.string,globalLevel);
 				throwError(11);
+				return -1;
 			}else{
 				if(sym->kind != PROC_S){
-					logerror("Call Statement");throwError(15);
+					logerror("Call Statement");
+					throwError(15);
+					return -1;
 				}else{
 					// generate call code
 					generateCall(currentProcedure, sym, globalLevel);
 				}
 			}
-			sts->super.calls_p = call;
-			sts->tag = CALL_S;
 			getToken(this);
 		}break;
 		case beginsym: {
@@ -475,6 +493,8 @@ int statementParse(struct Parse *this,statementNode_t *sts){
 				beginS->numsStatement=0;
 				beginS->stsList = NULL;
 			}
+			sts->super.begins_p = beginS;
+			sts->tag = BEGIN_S;
 			beginS->stsList = calloc(1,sizeof(statementNode_t));
 			if(beginS->stsList == NULL){
 				logerror("initial a statement failed\n");
@@ -500,16 +520,15 @@ int statementParse(struct Parse *this,statementNode_t *sts){
 				beginS->numsStatement++;
 			}		
 			if(curToken->cToken != endsym){
-				logerror("The current token is:[%d,%s]\n",curToken->cToken,opSymbol[curToken->cToken]);
-				throwError(19);
+				logerror("Token:[%d,%s]",curToken->cToken,opSymbol[curToken->cToken]);
+				throwError(26);
+				return -1;
 			}
-			sts->super.begins_p = beginS;
 			// generated return function
 			if (currentProcedure > 0){
 				//no return for main procedure
 				generateReturn(currentProcedure);
 			}	
-			sts->tag = BEGIN_S;
 			getToken(this); // get next token
 		}break;
 		case ifsym: {
@@ -522,7 +541,9 @@ int statementParse(struct Parse *this,statementNode_t *sts){
 				ifs->cond = NULL;
 				ifs->ifsts = NULL;
 				ifs->elsests = NULL;
-			}
+			}			
+			sts->super.ifs_p = ifs;
+			sts->tag = IF_S;
 			getToken(this);
 			ifs->cond = calloc(1,sizeof(conditionNode_t));
 			if(ifs->cond == NULL){
@@ -537,8 +558,9 @@ int statementParse(struct Parse *this,statementNode_t *sts){
 				logerror("\n");return ret;
 			}
 			if(curToken->cToken != thensym){
-				logerror("The current token is:[%d,%s]\n",curToken->cToken,opSymbol[curToken->cToken]);
+				logerror("Token:[%d,%s]",curToken->cToken,opSymbol[curToken->cToken]);
 				throwError(16);
+				return -1;
 			}else{
 				getToken(this);
 			}
@@ -582,9 +604,6 @@ int statementParse(struct Parse *this,statementNode_t *sts){
 			register_ptr--;
 			// update  the jump statement to point to the next statement.
 			changeM(currentProcedure, j2, getCodeLength(currentProcedure));
-			sts->super.ifs_p = ifs;
-			// update condition
-			sts->tag = IF_S;
 		}break;
 		case whilesym: {
 			// "while" condition "do" statement
@@ -596,6 +615,8 @@ int statementParse(struct Parse *this,statementNode_t *sts){
 				whileS->cond = NULL;
 				whileS->sts = NULL;
 			}
+			sts->super.whiles_p = whileS;
+			sts->tag = WHILE_S;
 			getToken(this);
 			int c = getCodeLength(currentProcedure);
 			
@@ -612,8 +633,9 @@ int statementParse(struct Parse *this,statementNode_t *sts){
 				logerror("\n");return ret;
 			}
 			if(curToken->cToken != dosym){				
-				logerror("The current token is:[%d,%s]\n",curToken->cToken,opSymbol[curToken->cToken]);
+				logerror("Token:[%d,%s]",curToken->cToken,opSymbol[curToken->cToken]);
 				throwError(18);
+				return -1;
 			}
 			getToken(this);
 			// generate a jump  function			
@@ -639,8 +661,6 @@ int statementParse(struct Parse *this,statementNode_t *sts){
 			changeM(currentProcedure, j1, getCodeLength(currentProcedure));
 			changeM(currentProcedure, j2, c);
 			register_ptr--;//Done with condition result. Free up register.
-			sts->super.whiles_p = whileS;
-			sts->tag = WHILE_S;
 		}break;
 		case readsym: {
 			//"read"  ident 
@@ -649,10 +669,13 @@ int statementParse(struct Parse *this,statementNode_t *sts){
 				logerror("initial read statement failed\n");
 				return -1;
 			}
+			sts->super.reads_p = readS;
+			sts->tag = READ_S;
 			getToken(this);
 			if(curToken->cToken != identsym){				
-				logerror("The current token is:[%d,%s]\n",curToken->cToken,opSymbol[curToken->cToken]);
+				logerror("Token:[%d,%s]",curToken->cToken,opSymbol[curToken->cToken]);
 				throwError(27);
+				return -1;
 			}else{
 				readS->ident.string = strdup(curToken->cTokenVal.string);
 			}
@@ -661,17 +684,17 @@ int statementParse(struct Parse *this,statementNode_t *sts){
 			if(sym == NULL){
 				logerror("Read Statement[%s,%d]",readS->ident.string,globalLevel);
 				throwError(11);
+				return -1;
 			}else{
 				if(sym->kind != VAR_S){
 					logerror("Read Statement");
-					throwError(12);
+					throwError(27);
+					return -1;
 				}else{					
 					generateRead(currentProcedure,register_ptr,sym,globalLevel);
 				}
 			}
 			// generate a read function
-			sts->super.reads_p = readS;
-			sts->tag = READ_S;
 			getToken(this);
 		}break;
 		case writesym: {
@@ -680,11 +703,14 @@ int statementParse(struct Parse *this,statementNode_t *sts){
 			if(writeS == NULL){
 				logerror("initial write a statement failed\n");
 				return -1;
-			}
+			}			
+			sts->super.writes_p = writeS;
+			sts->tag = WRITE_S;
 			getToken(this);
 			if(curToken->cToken != identsym){
-				logerror("The current token is:[%d,%s]\n",curToken->cToken,opSymbol[curToken->cToken]);
+				logerror("Token:[%d,%s]",curToken->cToken,opSymbol[curToken->cToken]);
 				throwError(28);
+				return -1;
 			}else{
 				writeS->ident.string = strdup(curToken->cTokenVal.string);
 			}
@@ -693,17 +719,17 @@ int statementParse(struct Parse *this,statementNode_t *sts){
 			if(sym == NULL){
 				logerror("Write Statement[%s,%d]",writeS->ident.string,globalLevel);
 				throwError(11);
+				return -1;
 			}else{
 				if((sym->kind == VAR_S)||(sym->kind == CONST_S)){
 					// generate a write function
 					generateWrite(currentProcedure,register_ptr,sym,globalLevel,sym->kind);
 				}else {		
 					logerror("Write Statement");
-					throwError(12);
+					throwError(27);
+					return -1;
 				}
 			}
-			sts->super.writes_p = writeS;
-			sts->tag = WRITE_S;
 			getToken(this);
 		}break;
 		default: {
@@ -753,7 +779,11 @@ int conditionParse(struct Parse *this, conditionNode_t *cond){
 			logerror("\n");return ret;
 		}
 		// generate a relop
-		cond->op.type = relOp(this);
+		ret = relOp(this);
+		if(ret == -1){ 
+			logerror("\n");return ret;
+		}
+		cond->op.type = ret;
 		
 		getToken(this);//get right experession
 		ret += expressionParse(this,cond->right);
@@ -772,8 +802,9 @@ int relOp(struct Parse *this)
     if (token != eqlsym && token != neqsym &&
         token != lessym && token != leqsym &&
         token != gtrsym && token != geqsym) {        
-		logerror("The current token is:[%d,%s]\n",token,opSymbol[token]);
+		logerror("Token:[%d,%s]\n",token,opSymbol[token]);
         throwError(20);
+		return -1;
     }
     return token;
 }
@@ -872,11 +903,11 @@ int termParse(struct Parse *this,termNode_t *tm,int preop){
 		logerror("initial a factor node failed\n");
 		return -1;
 	}
+	tm->factorEList->factor = fn;
 	ret += factorParse(this,fn);
 	if(ret != 0){ 
 		logerror("\n");return ret;
 	}
-	tm->factorEList->factor =fn;
 	tm->numsFacorExp++;
 	cur = tm->factorEList;
     switch (preop) {
@@ -934,6 +965,7 @@ int factorParse(struct Parse *this,factorNode_t *fn){
 			if(sym == NULL){
 				logerror("Identifier[%s,%d]",fn->element.ident.string,globalLevel);
 				throwError(11);
+				return -1;
 			}else{
 				switch (sym->kind){
 					case VAR_S:{
@@ -946,7 +978,9 @@ int factorParse(struct Parse *this,factorNode_t *fn){
 					}break;
 					case PROC_S:{
 						//error
-						logerror("Identifier");throwError(21);
+						logerror("Identifier");
+						throwError(21);
+						return -1;
 					}break;
 				}
 			}
@@ -954,6 +988,11 @@ int factorParse(struct Parse *this,factorNode_t *fn){
     	}break;
 		case numbersym:{
 			fn->tag = F_DIGIT;
+			if(curToken->cTokenVal.numeric > MAX_NUMBER){
+				logerror("%d > %d",curToken->cTokenVal.numeric,MAX_NUMBER);
+				throwError(25);
+				return -1;
+			}			
 			fn->element.digit.value = curToken->cTokenVal.numeric;
 			generateLiteral(currentProcedure,register_ptr,fn->element.digit.value);
 			register_ptr++; //Increment RP.
@@ -976,14 +1015,16 @@ int factorParse(struct Parse *this,factorNode_t *fn){
 			}
 			fn->element.exp = exp;
 			if(curToken->cToken != rparentsym){				
-				logerror("The current token is:[%d,%s]\n",curToken->cToken,opSymbol[curToken->cToken]);
+				logerror("Token:[%d,%s]",curToken->cToken,opSymbol[curToken->cToken]);
 				throwError(22);
+				return -1;
 			}
 			getToken(this);
     	}break;
 		default:{
-			logerror("The current token is:[%d,%s]\n",curToken->cToken,opSymbol[curToken->cToken]);
+			logerror("Token:[%d,%s]",curToken->cToken,opSymbol[curToken->cToken]);
 			throwError(23);
+			return -1;
 		}
 	}
 	return ret;

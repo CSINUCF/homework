@@ -35,7 +35,8 @@ If not, see <http://www.gnu.org/licenses/>.
 #define MAX_IDENT_LENGTH 11
 #define MAX_RESERVED_WORD 15
 #define MAX_BUFFER_SIZE (MAX_IDENT_LENGTH+2)
-#define MAX_NUMBER_LENGTH 5
+#define MAX_NUMBER_LENGTH 6
+#define MAX_NUMBER	90000
 #define MAX_SYMBOL_CNT 500
 
 
@@ -376,6 +377,9 @@ static inline void throwError(int errorType)
     case 29:
         logpretty("Symbol out of scope.\n");
         break;
+	case 30:
+		logpretty("Assignment must be followed by :=.\n");
+		break;
     }
 }
 #endif
