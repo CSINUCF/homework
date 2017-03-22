@@ -246,9 +246,7 @@ void blockCleanup(struct blockNode *blk){
 
 void programCleanup(struct Parse *this){
 	programNode_t *ast = this->ast;
-	if(ast == NULL){
-		logdebug("parse is empty\n");
-	}else{	
+	if(ast != NULL){	
 		blockNode_t *ptr = ast->block;
 		blockNode_t *del = NULL;
 		while(ptr != NULL){
@@ -297,6 +295,6 @@ struct Parse * parse_init(struct SymTable *syms){
 	parser->run = run;
 	parser->unParsePrint = unParsePrint;
 	parser->printAST = printAST;
-	logdebug("parse init sucessfully\n");
-	return;
+	logdebug("Initial parse and code generator successfully\n");
+	return parser;
 }

@@ -45,6 +45,7 @@ void driver_run(struct CompilerDriver *this,char *path){
 	}
 	
 	//write the current token list to the file which is the input of parser.
+	logdebug("output token list to %s\n",tokenFile);
 	FILE *tokenF = fileCreateAndOpen(tokenFile);
 	this->scanner->outputLexmeList(this->scanner,tokenF);
 	fclose(tokenF);
@@ -152,7 +153,6 @@ struct CompilerDriver *init_driver(){
 	CompilerDriver_t *driver = (CompilerDriver_t *)calloc(1,sizeof(CompilerDriver_t));
 	if(driver == NULL){
 		logerror("initial a compiler driver object failed\n");
-		return NULL;
 	}else{
 		
 		driver->cleanup = driver_cleanup;
@@ -182,9 +182,9 @@ struct CompilerDriver *init_driver(){
 			driver->cleanup(driver);
 			return NULL;
 		}
-		logdebug("init a driver successfully\n");
-		return driver;
+		logdebug("Initial PL/0 Compiler sucessfully\n");
 	}	
+	return driver;
 }
 
 static inline void help()

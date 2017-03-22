@@ -1,0 +1,19 @@
+const m = 7, n = 85; 
+var x,y;
+procedure sum;
+	var a,b;
+	begin
+		a := m*3;
+		write a;
+		b := n/2;
+		write b;
+		x := x*a + b
+	end;
+begin
+	x := -1*(-1);
+	read y;
+	call sum;
+	write x;
+	x := -x + y;
+	write x
+end.

@@ -99,7 +99,6 @@ int main(int argc, char* argv[]){
 	if((out_idx != -1)&&(out_idx+1<argc)){
 		out_path = argv[out_idx+1];
 		if( access(out_path, F_OK ) == -1){
-			logdebug("out path:%s\n",out_path);
 			//ftruncate(vm->out_path,0);
 			fclose(fopen(out_path, "w"));
 		}

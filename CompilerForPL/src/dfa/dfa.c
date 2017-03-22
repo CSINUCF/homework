@@ -527,7 +527,6 @@ struct DFA *dfa_init(){
 		dfa->putLexeme = putLexeme;
 		dfa->printLexme = printLexme;
 		dfa->outputLexme = outputLexme;
-		logdebug("DFA initail successfully\n");
 	}else{
 		logerror("Apply for DFA memory failed\n");
 	}	

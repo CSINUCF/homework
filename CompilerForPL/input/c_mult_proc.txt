@@ -48,7 +48,6 @@ procedure divide;
 		var xx;
 		begin
 			w := xx + 1;
-			call gcd;
 		end;
 	begin
 	  r := x;
@@ -63,7 +62,7 @@ procedure divide;
 		begin
 		  r := r - w;
 		  q := q + 1
-		end
+		end;
 	  end
 	end;
 
@@ -88,5 +87,6 @@ procedure gcd;
 begin
   x := m;
   y := n;
-  call mult
+  call mult1;
+  call gcd
 end.

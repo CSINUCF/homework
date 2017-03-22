@@ -125,10 +125,22 @@ static inline void getToken(struct Parse *this){
 	this->tokenCount++;
 }
 
+static inline Token_t getfollowToken(struct Parse *this){
+	Token_t ret = nulsym;
+	if(!feof(this->tokenFile)){
+		//read the new token in
+		fscanf(this->tokenFile, "%d ", (int*)(&ret));
+		// rewind the pointer
+		fseek(this->tokenFile, -1 * sizeof(char), SEEK_CUR);
+	}
+	return ret;
+}
+
+
 /*The entry to parse a program*/
 int parse(struct Parse *this){
 	int ret = 0;
-	ret += programParse(this);
+	ret = programParse(this);
 	if(ret != 0){ 
 		logerror("\n");return ret;
 	}
@@ -139,23 +151,22 @@ int parse(struct Parse *this){
  */
 int programParse(struct Parse *this){
 	int ret = 0;
-	programNode_t *prog = (programNode_t *)calloc(1,sizeof(programNode_t));
-	if(prog == NULL){
+	this->ast= (programNode_t *)calloc(1,sizeof(programNode_t));
+	if(this->ast == NULL){
 		logerror("initial root ast tree failed\n");
 		return -1;
 	}else{
-		this->ast = prog;
-		prog->numsBlock = 0;
-		prog->block = (blockNode_t*)calloc(1,sizeof(blockNode_t));
-		if(prog->block == NULL){
+		this->ast->numsBlock = 0;
+		this->ast->block = (blockNode_t*)calloc(1,sizeof(blockNode_t));
+		if(this->ast->block == NULL){
 			logerror("inital block failed\n");
 			return -1;
 		}else{
-			prog->block->next = NULL;
-			prog->block->numsConstDecl = 0;
-			prog->block->numsProcDef= 0;
-			prog->block->numsStatement= 0;
-			prog->block->numsVarDecl= 0;
+			this->ast->block->next = NULL;
+			this->ast->block->numsConstDecl = 0;
+			this->ast->block->numsProcDef= 0;
+			this->ast->block->numsStatement= 0;
+			this->ast->block->numsVarDecl= 0;
 		}
 	}
 	setOffsets();
@@ -163,7 +174,7 @@ int programParse(struct Parse *this){
 	getToken(this);
 	CurrentToken_t *curToken = &this->curToken;
     currentProcedure = getFreeSet();
-	ret += blockParse(this,prog->block);	
+	ret = blockParse(this,this->ast->block);	
 	if(ret != 0){ 
 		logerror("\n");return ret;
 	}
@@ -172,9 +183,9 @@ int programParse(struct Parse *this){
 		throwError(9);
 		return -1;
 	}	
-	prog->numsBlock++;
+	this->ast->numsBlock++;
 	//TODO generateVariableSpace
-    generateVariableSpace(currentProcedure,prog->block->numsVarDecl+ 4);
+    generateVariableSpace(currentProcedure,this->ast->block->numsVarDecl+ 4);
 	
 	//TODO generateHalt
     generateHalt(currentProcedure);
@@ -191,7 +202,6 @@ block = [ "const" ident "=" number {"," ident "=" number} ";"]
 int blockParse(struct Parse *this,struct blockNode *blk){
 	int ret = 0;
 	CurrentToken_t *curToken = &this->curToken;
-	logdebug("The current token is:[%d,%s]\n",curToken->cToken,opSymbol[curToken->cToken]);
 	/*const variable declare*/
 	if(curToken->cToken == constsym){
 		 //[ "const" ident "=" number {"," ident "=" number} ";"]
@@ -203,6 +213,17 @@ int blockParse(struct Parse *this,struct blockNode *blk){
 				return -1;
 			}else{
 				cont->next = NULL;
+				cont->lexical = 0;
+				cont->paraProc = 0;
+				cont->addr = 0;
+				//add a new node to the list first
+				if(blk->numsConstDecl++ == 0){
+					blk->constDecl = cont;				
+					contP = cont;
+				}else{
+					contP->next = cont;
+					contP = cont;
+				}
 			}
 			getToken(this); // get ident
 			if(curToken->cToken != identsym){
@@ -240,13 +261,6 @@ int blockParse(struct Parse *this,struct blockNode *blk){
 				// make a const symbol
 				makeSymbol(this,cont->ident.string,CONST_S);
 			}			
-			if(blk->numsConstDecl++ == 0){
-				blk->constDecl = cont;				
-				contP = cont;
-			}else{
-				contP->next = cont;
-				contP = cont;
-			}
 			getToken(this); // get comma or semiconlon
 		}while(curToken->cToken == commasym);
 		if (curToken->cToken != semicolonsym){			
@@ -268,6 +282,18 @@ int blockParse(struct Parse *this,struct blockNode *blk){
 				return -1;
 			}else{
 				var->next = NULL;
+				var->addr = 0;
+				var->lexical = 0;
+				var->paraProc = 0;
+				
+				// Add a new node to the list before handle it.
+				if(blk->numsVarDecl++ == 0){
+					blk->varDecl = var;
+					varP = var;
+				}else{
+					varP->next = var;
+					varP = var;
+				}
 			}
 			getToken(this);// get ident
 			if(curToken->cToken != identsym){
@@ -282,15 +308,6 @@ int blockParse(struct Parse *this,struct blockNode *blk){
 				// make a symbol
 				makeSymbol(this,var->ident.string,VAR_S);
 			}
-			// add new node to the list
-			if(blk->numsVarDecl++ == 0){
-				blk->varDecl = var;
-				varP = var;
-			}else{
-				varP->next = var;
-				varP = var;
-			}
-			
 			getToken(this);// get next token, that is comma or semicon
 		}while(curToken->cToken == commasym);
 		if (curToken->cToken != semicolonsym){
@@ -311,6 +328,18 @@ int blockParse(struct Parse *this,struct blockNode *blk){
 			return -1;
 		}else{
 			proc->next = NULL;
+			proc->addr = 0;
+			proc->lexical = 0;
+			proc->paraProc = 0;
+			
+			// add new node to the list first
+			if(blk->numsProcDef++ == 0){
+				blk->procDef = proc;
+				procP = proc;
+			}else{
+				procP->next = proc;
+				procP = proc;
+			}		
 		}
 		getToken(this); // get ident, the name of proc
 		if(curToken->cToken != identsym){			
@@ -347,16 +376,8 @@ int blockParse(struct Parse *this,struct blockNode *blk){
     		  Because a porgram is consist of a block, so when parser step in a blcok, which means
     		  there is a new level.
 		 */
-		// add new node to the list
-		if(blk->numsProcDef++ == 0){
-			blk->procDef = proc;
-			procP = proc;
-		}else{
-			procP->next = proc;
-			procP = proc;
-		}		
         globalLevel++;
-		ret += blockParse(this,proc->body);
+		ret = blockParse(this,proc->body);
         globalLevel--;
 		if(ret != 0){ 
 			logerror("\n");return ret;
@@ -380,11 +401,11 @@ int blockParse(struct Parse *this,struct blockNode *blk){
 		logerror("initial a statement failed\n");
 		return -1;
 	}else{
-		ret += statementParse(this,blk->statement);
+		blk->numsStatement++;
+		ret = statementParse(this,blk->statement);
 		if(ret != 0){ 
 			logerror("\n");return ret;
 		}
-		blk->numsStatement++;
 	}	
 	return ret;
 }
@@ -402,7 +423,6 @@ int statementParse(struct Parse *this,statementNode_t *sts){
 	int ret =0;
 	CurrentToken_t *curToken = &this->curToken;
 	SymTable_T *symTable = this->symbolTable;
-	logdebug("The current token is:[%d,%s]\n",curToken->cToken,opSymbol[curToken->cToken]);
 	switch (curToken->cToken){
 		case identsym: {
 			// assignment statement, it looks like " ident ":=" expression" 
@@ -411,10 +431,11 @@ int statementParse(struct Parse *this,statementNode_t *sts){
 				logerror("initial a assignment state failed\n");
 				return -1;
 			}else{
+				sts->super.assigns_p = ass;
+				sts->tag = ASSIGN_S;
+				ass->exp = NULL;
 				ass->ident.string = strdup(curToken->cTokenVal.string);
 			}
-			sts->super.assigns_p = ass;
-			sts->tag = ASSIGN_S;
 			//TODO get the symbol from table and check
 			struct Symbol *sym = symTable->getSymbol(symTable,ass->ident.string,globalLevel);
 			if(sym == NULL){
@@ -438,8 +459,9 @@ int statementParse(struct Parse *this,statementNode_t *sts){
 				return -1;
 			}else{
 				ass->exp->numsTermExp = 0;
+				ass->exp->termEList = NULL;
 			}
-			ret += expressionParse(this,ass->exp);
+			ret = expressionParse(this,ass->exp);
 			if(ret != 0){ 
 				logerror("\n");return ret;
 			}
@@ -453,9 +475,10 @@ int statementParse(struct Parse *this,statementNode_t *sts){
 			if(call == NULL){
 				logerror("initial call statement failed\n");
 				return -1;
+			}else{
+				sts->super.calls_p = call;
+				sts->tag = CALL_S;
 			}
-			sts->super.calls_p = call;
-			sts->tag = CALL_S;
 			getToken(this); // get ident
 			if(curToken->cToken != identsym){
 				logerror("Token:[%d,%s]",curToken->cToken,opSymbol[curToken->cToken]);
@@ -490,35 +513,63 @@ int statementParse(struct Parse *this,statementNode_t *sts){
 				logerror("inital begin state failed\n");
 				return -1;
 			}else{
+				sts->super.begins_p = beginS;
+				sts->tag = BEGIN_S;
 				beginS->numsStatement=0;
 				beginS->stsList = NULL;
 			}
-			sts->super.begins_p = beginS;
-			sts->tag = BEGIN_S;
 			beginS->stsList = calloc(1,sizeof(statementNode_t));
 			if(beginS->stsList == NULL){
 				logerror("initial a statement failed\n");
 				return -1;
 			}else{
 				getToken(this); // get next token
-				ret += statementParse(this,beginS->stsList);
+				ret = statementParse(this,beginS->stsList);
 				if(ret != 0){ 
 					logerror("\n");return ret;
 				}
 				beginS->numsStatement++;
 				stsP = beginS->stsList;
 			}
+		#if 0	
+			if((curToken->cToken != semicolonsym)&&(curToken->cToken != endsym)){
+				Token_t follow_token = getfollowToken(this);
+				if(follow_token != endsym){
+					logerror("CurrentToken:[%d,%s],FollowedToken[%d,%s]",
+						curToken->cToken,opSymbol[curToken->cToken],
+						follow_token,opSymbol[follow_token]);
+					throwError(5);
+					return -1;
+				}
+			}
+		#endif	
 			while(curToken->cToken == semicolonsym){
 				statementNode_t *s = calloc(1,sizeof(statementNode_t));
+				if(s == NULL){
+					logerror("\n");return -1;
+				}else{
+					stsP->next = s;
+					stsP = s;
+					beginS->numsStatement++;
+				}
 				getToken(this); // get next token
-				ret += statementParse(this,s);
+				ret = statementParse(this,s);
 				if(ret != 0){ 
 					logerror("\n");return ret;
 				}
-				stsP->next = s;
-				stsP = s;
-				beginS->numsStatement++;
-			}		
+			#if 0	
+				if((curToken->cToken != semicolonsym)&&(curToken->cToken != endsym)){
+					Token_t follow_token = getfollowToken(this);
+					if(follow_token != endsym){
+						logerror("CurrentToken:[%d,%s],FollowedToken[%d,%s]",
+							curToken->cToken,opSymbol[curToken->cToken],
+							follow_token,opSymbol[follow_token]);
+						throwError(5);
+						return -1;
+					}
+				}
+			#endif	
+			}
 			if(curToken->cToken != endsym){
 				logerror("Token:[%d,%s]",curToken->cToken,opSymbol[curToken->cToken]);
 				throwError(26);
@@ -538,12 +589,12 @@ int statementParse(struct Parse *this,statementNode_t *sts){
 				logerror("initial if statement failed\n");
 				return -1;
 			}else{
+				sts->super.ifs_p = ifs;
+				sts->tag = IF_S;
 				ifs->cond = NULL;
 				ifs->ifsts = NULL;
 				ifs->elsests = NULL;
 			}			
-			sts->super.ifs_p = ifs;
-			sts->tag = IF_S;
 			getToken(this);
 			ifs->cond = calloc(1,sizeof(conditionNode_t));
 			if(ifs->cond == NULL){
@@ -553,7 +604,7 @@ int statementParse(struct Parse *this,statementNode_t *sts){
 				ifs->cond->left = NULL;
 				ifs->cond->right = NULL;
 			}
-			ret += conditionParse(this,ifs->cond);
+			ret = conditionParse(this,ifs->cond);
 			if(ret != 0){ 
 				logerror("\n");return ret;
 			}
@@ -567,7 +618,6 @@ int statementParse(struct Parse *this,statementNode_t *sts){
 			// generate a jump function
 			int j1 = getCodeLength(currentProcedure);
 			generateConditionalJump(currentProcedure,register_ptr-1);
-
 			
 			ifs->ifsts = calloc(1,sizeof(statementNode_t));
 			if(ifs->ifsts == NULL){
@@ -576,7 +626,7 @@ int statementParse(struct Parse *this,statementNode_t *sts){
 			}else{
 				ifs->ifsts->next = NULL;
 			}
-			ret += statementParse(this,ifs->ifsts);
+			ret = statementParse(this,ifs->ifsts);
 			if(ret != 0){ 
 				logerror("\n");return ret;
 			}
@@ -596,7 +646,7 @@ int statementParse(struct Parse *this,statementNode_t *sts){
 					ifs->elsests->next = NULL;
 				}
 				getToken(this);
-				ret += statementParse(this,ifs->elsests);
+				ret = statementParse(this,ifs->elsests);
 				if(ret != 0){ 
 					logerror("\n");return ret;
 				}
@@ -612,11 +662,11 @@ int statementParse(struct Parse *this,statementNode_t *sts){
 				logerror("initial while statement failed\n");
 				return -1;
 			}else{
+				sts->super.whiles_p = whileS;
+				sts->tag = WHILE_S;
 				whileS->cond = NULL;
 				whileS->sts = NULL;
 			}
-			sts->super.whiles_p = whileS;
-			sts->tag = WHILE_S;
 			getToken(this);
 			int c = getCodeLength(currentProcedure);
 			
@@ -628,7 +678,7 @@ int statementParse(struct Parse *this,statementNode_t *sts){
 				whileS->cond->left = NULL;
 				whileS->cond->right = NULL;
 			}
-			ret += conditionParse(this,whileS->cond);
+			ret = conditionParse(this,whileS->cond);
 			if(ret != 0){ 
 				logerror("\n");return ret;
 			}
@@ -649,7 +699,7 @@ int statementParse(struct Parse *this,statementNode_t *sts){
 			}else{
 				whileS->sts->next = NULL;
 			}
-			ret += statementParse(this,whileS->sts);
+			ret = statementParse(this,whileS->sts);
 			if(ret != 0){ 
 				logerror("\n");return ret;
 			}
@@ -668,9 +718,10 @@ int statementParse(struct Parse *this,statementNode_t *sts){
 			if(readS == NULL){
 				logerror("initial read statement failed\n");
 				return -1;
+			}else{
+				sts->super.reads_p = readS;
+				sts->tag = READ_S;
 			}
-			sts->super.reads_p = readS;
-			sts->tag = READ_S;
 			getToken(this);
 			if(curToken->cToken != identsym){				
 				logerror("Token:[%d,%s]",curToken->cToken,opSymbol[curToken->cToken]);
@@ -703,9 +754,10 @@ int statementParse(struct Parse *this,statementNode_t *sts){
 			if(writeS == NULL){
 				logerror("initial write a statement failed\n");
 				return -1;
-			}			
-			sts->super.writes_p = writeS;
-			sts->tag = WRITE_S;
+			}else{			
+				sts->super.writes_p = writeS;
+				sts->tag = WRITE_S;
+			}
 			getToken(this);
 			if(curToken->cToken != identsym){
 				logerror("Token:[%d,%s]",curToken->cToken,opSymbol[curToken->cToken]);
@@ -747,7 +799,6 @@ condition ::= "odd" expression
 int conditionParse(struct Parse *this, conditionNode_t *cond){
 	int ret = 0;
 	CurrentToken_t *curToken = &this->curToken;
-	logdebug("The current token is:[%d,%s]\n",curToken->cToken,opSymbol[curToken->cToken]);
 	cond->right = calloc(1,sizeof(expressionNode_t));
 	if(cond->right == NULL){
 		logerror("initial experssion left statement failed\n");
@@ -759,7 +810,7 @@ int conditionParse(struct Parse *this, conditionNode_t *cond){
 	if(curToken->cToken == oddsym){
 		cond->op.type = oddsym;
 		getToken(this);// get right experession
-		ret += expressionParse(this,cond->right);
+		ret = expressionParse(this,cond->right);
 		if(ret != 0){ 
 			logerror("\n");return ret;
 		}
@@ -774,7 +825,7 @@ int conditionParse(struct Parse *this, conditionNode_t *cond){
 			cond->left->numsTermExp = 0;
 			cond->left->termEList = NULL;
 		}
-		ret += expressionParse(this,cond->left); // set left experession
+		ret = expressionParse(this,cond->left); // set left experession
 		if(ret != 0){ 
 			logerror("\n");return ret;
 		}
@@ -786,9 +837,9 @@ int conditionParse(struct Parse *this, conditionNode_t *cond){
 		cond->op.type = ret;
 		
 		getToken(this);//get right experession
-		ret += expressionParse(this,cond->right);
+		ret = expressionParse(this,cond->right);
 		if(ret != 0){ 
-			logerror("\n");return ret;
+			logerror("[%d]\n",ret);return ret;
 		}
         generateRelOp(currentProcedure,cond->op.type,register_ptr-2,register_ptr-2,register_ptr-1);
 		register_ptr--;
@@ -817,7 +868,6 @@ int expressionParse(struct Parse *this, expressionNode_t *exp){
 	int ret = 0;
 	int preop = 0;
 	CurrentToken_t *curToken = &this->curToken;
-	logdebug("The current token is:[%d,%s]\n",curToken->cToken,opSymbol[curToken->cToken]);
 	termExp_t *cur = NULL;
 	exp->termEList = calloc(1,sizeof(termExp_t));
 	if(exp->termEList == NULL){
@@ -840,7 +890,7 @@ int expressionParse(struct Parse *this, expressionNode_t *exp){
 		exp->termEList->term->factorEList = NULL;
 		exp->termEList->term->numsFacorExp = 0;
 	}
-	ret += termParse(this,exp->termEList->term,preop);
+	ret = termParse(this,exp->termEList->term,preop);
 	if(ret != 0){ 
 		logerror("\n");return ret;
 	}
@@ -853,6 +903,9 @@ int expressionParse(struct Parse *this, expressionNode_t *exp){
 			logerror("initial term expe failed\n");
 			return -1;
 		}else{
+			cur->next = te;
+			cur = te;
+			exp->numsTermExp++;
 			te->next = NULL;
 			te->op.type = op;
 			te->term = NULL;
@@ -866,13 +919,10 @@ int expressionParse(struct Parse *this, expressionNode_t *exp){
 			te->term->numsFacorExp = 0;
 		}		
 		getToken(this);
-		ret += termParse(this,te->term,0);
+		ret = termParse(this,te->term,0);
 		if(ret != 0){ 
 			logerror("\n");return ret;
 		}
-		cur->next = te;
-		cur = te;
-		exp->numsTermExp++;
         generateCalculation(currentProcedure,op,register_ptr-2,register_ptr-2,register_ptr-1);
 		register_ptr--;
     }
@@ -886,7 +936,6 @@ term ::= factor {("*"|"/") factor}.
 int termParse(struct Parse *this,termNode_t *tm,int preop){
 	int ret = 0;
 	CurrentToken_t *curToken = &this->curToken;
-	logdebug("The current token is:[%d,%s]\n",curToken->cToken,opSymbol[curToken->cToken]);
 	factorExp_t *cur = NULL;
 	tm->factorEList = calloc(1,sizeof(factorExp_t));
 	if(tm->factorEList == NULL){
@@ -898,13 +947,12 @@ int termParse(struct Parse *this,termNode_t *tm,int preop){
 		tm->factorEList->op.type = nulsym;		
 	}
 	
-	factorNode_t *fn = calloc(1,sizeof(factorNode_t));
-	if(fn == NULL){
+	tm->factorEList->factor = calloc(1,sizeof(factorNode_t));
+	if(tm->factorEList->factor == NULL){
 		logerror("initial a factor node failed\n");
 		return -1;
 	}
-	tm->factorEList->factor = fn;
-	ret += factorParse(this,fn);
+	ret = factorParse(this,tm->factorEList->factor);
 	if(ret != 0){ 
 		logerror("\n");return ret;
 	}
@@ -912,7 +960,6 @@ int termParse(struct Parse *this,termNode_t *tm,int preop){
 	cur = tm->factorEList;
     switch (preop) {
     case plussym : //plus
-        //generatePosification(currentProcedure);
         break;
     case minussym: //minus
         generateNegation(currentProcedure,register_ptr-1,register_ptr-1,0);
@@ -925,6 +972,12 @@ int termParse(struct Parse *this,termNode_t *tm,int preop){
 			logerror("initial a factor EXP failed\n");
 			return -1;
 		}else{
+			// add the new node to the list first
+			cur->next = fe;
+			cur = fe;	
+			tm->numsFacorExp++;
+
+			
 			fe->next = NULL;
 			fe->op.type = curToken->cToken; //6 if mult, 7 if div
 			fe->factor = calloc(1,sizeof(factorNode_t));
@@ -933,16 +986,13 @@ int termParse(struct Parse *this,termNode_t *tm,int preop){
 				return -1;
 			}else{
 				getToken(this);
-				ret += factorParse(this,fe->factor);
+				ret = factorParse(this,fe->factor);
 				if(ret != 0){ 
 					logerror("\n");return ret;
 				}
 				generateCalculation(currentProcedure,op,register_ptr-2,register_ptr-2,register_ptr-1);
 				register_ptr--;// release register_ptr-1, and the result store into register_ptr-2
 			}
-			cur->next = fe;
-			cur = fe;	
-			tm->numsFacorExp++;
 		}
     }
 	return ret;
@@ -955,7 +1005,6 @@ int factorParse(struct Parse *this,factorNode_t *fn){
 	int ret = 0;
 	CurrentToken_t *curToken = &this->curToken;
 	SymTable_T *symTable = this->symbolTable;
-	logdebug("The current token is:[%d,%s]\n",curToken->cToken,opSymbol[curToken->cToken]);
 	switch (curToken->cToken){
 		case identsym:{
 			fn->tag = F_IDENT;
@@ -1005,15 +1054,15 @@ int factorParse(struct Parse *this,factorNode_t *fn){
 				logerror("initial a expression node failed\n");
 				return -1;
 			}else{
+				fn->element.exp = exp;
 				exp->numsTermExp = 0;
 				exp->termEList == NULL;
 			}			
 			getToken(this);
-			ret += expressionParse(this,exp);
+			ret = expressionParse(this,exp);
 			if(ret != 0){ 
 				logerror("\n");return ret;
 			}
-			fn->element.exp = exp;
 			if(curToken->cToken != rparentsym){				
 				logerror("Token:[%d,%s]",curToken->cToken,opSymbol[curToken->cToken]);
 				throwError(22);

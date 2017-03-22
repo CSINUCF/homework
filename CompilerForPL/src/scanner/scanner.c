@@ -200,6 +200,6 @@ Scanner_t * scanner_init(struct SymTable * syms){
 	scanner->printLexmeList = _printLexmeList;
 	scanner->putSymbol = putSymbol;
 	scanner->outputLexmeList = _outputLexmeList;
-	logdebug("Scanner initial successfully\n");
+	logdebug("Initial Scanner successfully\n");
 	return scanner;
 }

@@ -234,7 +234,6 @@ void SymTable_exit(struct SymTable *this){
 		}
 	}
 	free(this->Buckets);
-	logdebug("symbol table exit successfully\n");
 	return;
 }
 void SymTable_print(struct SymTable *this,int option,FILE *out){
@@ -310,7 +309,6 @@ struct SymTable *SymTable_init(int bucketCount){
 	symTable->numsTable = 0;
 	symTable->totalNodes = 0;
 	symTable->numsBucket = bucketCount;
-#if 1	
 	/*init operation*/
 	symTable->getHashValue = hashcode;
 	symTable->contain = _contain;
@@ -325,8 +323,7 @@ struct SymTable *SymTable_init(int bucketCount){
 
 	symTable->exit = SymTable_exit;
 	symTable->printinfo = SymTable_print;
-	logdebug("Symbol Table initial successfully\n");
-#endif
+	logdebug("Initial a symbol table successfully\n");
 	return symTable;
 }
 

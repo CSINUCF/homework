@@ -40,8 +40,6 @@ If not, see <http://www.gnu.org/licenses/>.
 #define MAX_SYMBOL_CNT 500
 
 
-#define DEBUG	0 //non-zero to print out debug info
-
 #define loginfo(format, ...)\
 	printf("INFO %s " format,__func__,##__VA_ARGS__)
 
@@ -51,10 +49,14 @@ If not, see <http://www.gnu.org/licenses/>.
 #define logerror(format, ...)\
 	printf("ERROR %s:%s:%d " format,__FILE__,__func__,__LINE__,##__VA_ARGS__)
 
-#define logdebug(format, ...) do{\
-		if(DEBUG)\
-			printf("DEBUG %s:%s:%d " format,__FILE__,__func__,__LINE__,##__VA_ARGS__);\
-	}while(0)
+
+#define DEBUG
+#ifdef DEBUG
+#define logdebug(format, ...)\
+	printf("DEBUG %s:%s:%d " format,__FILE__,__func__,__LINE__,##__VA_ARGS__)
+#else
+#define logdebug(format, ...)
+#endif
 /*
   * out_fp:  a file pointer to point to a open file
   */
@@ -278,7 +280,6 @@ static inline int findIndex(int argc, char* argv[],char *p){
 
 static inline FILE *fileCreateAndOpen(char *path){
 	if(access(path,F_OK ) == -1){
-		logdebug("\n");
 		fclose(fopen(path, "w"));
 	}
 	return fopen(path, "ab+");

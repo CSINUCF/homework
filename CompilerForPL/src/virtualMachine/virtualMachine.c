@@ -57,7 +57,6 @@ static inline void run_vm(struct virtualMachine *vm,char *path,FILE *stdout){
 	   vm->out_fp = stdout;
 	   int numIR = vm->load_code(vm,path); //load the code to machine
 	   if(numIR == -1){
-		   logdebug("load source code error\n");
 		   vm->status = ERROR;
 		   return;
 	   }else{
@@ -402,7 +401,6 @@ static inline int load_code(struct virtualMachine *vm,char *path){
 
 static inline void exit_vm(struct virtualMachine *vm)
 {
-	logdebug("virtual machine exist successfully\n");
 	return;
 }
 
@@ -448,7 +446,7 @@ struct virtualMachine* init_vm(){
 	vm->run = run_vm;
 	vm->exit = exit_vm;	
 	vm->status = IDLE;
-	logdebug("Virtual Machine initial successfully\n");
+	logdebug("Inital  a Virtual Machine successfully\n");
 	return vm;
 }
 
