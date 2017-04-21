@@ -29,7 +29,7 @@ If not, see <http://www.gnu.org/licenses/>.
 typedef struct CompilerDriver{
 	struct Scanner *scanner;
 	struct Parse *parse;
-	struct GenCode *gc;
+	//struct GenCode *gc;
 	struct SymTable *sym;
 	struct virtualMachine *vm;
 	void (*cleanup)(struct CompilerDriver *this);

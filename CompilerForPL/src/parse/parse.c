@@ -121,6 +121,9 @@ static inline void getToken(struct Parse *this){
 	// update he content if current token is a number.
 	if(currentToken->cToken == numbersym){
 		fscanf(this->tokenFile, "%d ", &currentToken->cTokenVal.numeric);
+	}	
+	if(currentToken->cToken == commentsym){
+		getToken(this);
 	}
 	this->tokenCount++;
 }
@@ -422,7 +425,7 @@ int blockParse(struct Parse *this,struct blockNode *blk){
 int statementParse(struct Parse *this,statementNode_t *sts){
 	int ret =0;
 	CurrentToken_t *curToken = &this->curToken;
-	SymTable_T *symTable = this->symbolTable;
+	SymTable_T *symTable = this->symbolTable;	
 	switch (curToken->cToken){
 		case identsym: {
 			// assignment statement, it looks like " ident ":=" expression" 

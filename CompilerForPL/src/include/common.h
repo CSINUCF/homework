@@ -50,7 +50,7 @@ If not, see <http://www.gnu.org/licenses/>.
 	printf("ERROR %s:%s:%d " format,__FILE__,__func__,__LINE__,##__VA_ARGS__)
 
 
-#define DEBUG
+//#define DEBUG
 #ifdef DEBUG
 #define logdebug(format, ...)\
 	printf("DEBUG %s:%s:%d " format,__FILE__,__func__,__LINE__,##__VA_ARGS__)
