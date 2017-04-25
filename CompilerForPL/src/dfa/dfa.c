@@ -15,7 +15,7 @@ You should have received a copy of the GNU General Public License along with thi
 If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "../include/dfa.h"
+#include "dfa.h"
 
 char *resWord[]={"null","begin","call","const","do","else","end",
 				 "if","odd","procedure","read","then","var","while","write"};

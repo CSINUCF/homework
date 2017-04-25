@@ -18,7 +18,7 @@ If not, see <http://www.gnu.org/licenses/>.
 @Reference:https://github.com/ZGorlock/PM0-Compiler
 */
 
-#include "../include/gencode.h"
+#include "gencode.h"
 
 
 

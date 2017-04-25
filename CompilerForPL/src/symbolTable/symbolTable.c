@@ -15,7 +15,7 @@ PURPOSE.  See the GNU General Public License for more details.
 You should have received a copy of the GNU General Public License along with this program.
 If not, see <http://www.gnu.org/licenses/>.
 */
-#include "../include/symtable.h"
+#include "symtable.h"
 
 int hashcode(struct SymTable *this,char *key){
 	unsigned long hash = 5381;

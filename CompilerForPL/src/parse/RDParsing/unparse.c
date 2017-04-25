@@ -15,22 +15,22 @@ PURPOSE.  See the GNU General Public License for more details.
 You should have received a copy of the GNU General Public License along with this program.
 If not, see <http://www.gnu.org/licenses/>.
 */
-#include "../include/parse.h"
+#include "parse.h"
 
 char *opSymbol[] = {
-	"",			//0
-	"null",
-	"var",
-	"number",
-	"+",
+	" ",			//0
+	"null",			// nulsym = 1,        // "null"
+	"ident",		//identsym = 2,      // a variable
+	"number",		//numbersym = 3,     // a number		
+	"+",			//plussym = 4,       // "+"
 	"-",
 	"*",
 	"/",
 	"odd",
-	"=",			//9
+	"=",			// eqlsym = 9,        // "="    19
+	"<>",			//neqsym = 10,       // "<>"   20
 	
-	"<>",			//11
-	"<",
+	"<",			//lessym = 11,       // "<"    21			
 	"<=",
 	">",
 	">=",
@@ -38,10 +38,10 @@ char *opSymbol[] = {
 	")",
 	",",
 	";",
-	".",			//20
+	".",			
+	":=",			
 	
-	":=",			//21
-	"begin",
+	"begin",		// beginsym = 21,     // "begin"		
 	"end",
 	"if",
 	"then",
@@ -49,9 +49,9 @@ char *opSymbol[] = {
 	"do",
 	"call",
 	"const",
-	"var",			//30
-
-	"procedure",	//31
+	"var",		
+	"procedure",	
+	
 	"write",
 	"read",
 	"else",

@@ -1,21 +1,11 @@
 /*This program outputs the i_th number in 
 	the fibonacci sequence */
-var i, a, aprev, t;
+const m=7;
+var i,a;
 
 begin
-	read i;
-	aprev:=0;
-	a:=1;
-	
-	while i>1 do	/* Simulating a "for" loop */
-	begin
-		t:= a;
-		a:= a+ aprev;
-		aprev:=t;
-
-		i:= i-1;
-	end;
-	
-	
+	a := 1
+	i := 5
+	a := a + i;
 	write a;
 end.

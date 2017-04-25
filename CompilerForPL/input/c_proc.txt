@@ -3,7 +3,7 @@ var x,y;/*varibles*/
 procedure sum;
 	var a,b;
 	begin
-		a := m*3;/*a = 21*/
+		a := m*3; /*a = 21*/
 		write a;
 		b := n/2; /*b = 42*/
 		write b;

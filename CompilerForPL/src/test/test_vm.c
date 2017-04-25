@@ -16,7 +16,7 @@ You should have received a copy of the GNU General Public License along with thi
 If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "../include/virtualMachine.h"
+#include "virtualMachine.h"
 
 static inline void help()
 {

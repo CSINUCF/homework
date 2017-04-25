@@ -15,7 +15,7 @@ PURPOSE.  See the GNU General Public License for more details.
 You should have received a copy of the GNU General Public License along with this program.
 If not, see <http://www.gnu.org/licenses/>.
 */
-#include "../include/scanner.h"
+#include "scanner.h"
 
 int main(int argc, char* argv[]){
 	char *path = NULL;

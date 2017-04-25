@@ -16,7 +16,7 @@ You should have received a copy of the GNU General Public License along with thi
 If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "../include/parse.h"
+#include "parse.h"
 
 
 void statementCleanup(statementNode_t *sts);
@@ -295,6 +295,7 @@ struct Parse * parse_init(struct SymTable *syms){
 	parser->run = run;
 	parser->unParsePrint = unParsePrint;
 	parser->printAST = printAST;
+	firstAndFollowSet(parser);
 	logdebug("Initial parse and code generator successfully\n");
 	return parser;
 }

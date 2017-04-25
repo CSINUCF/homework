@@ -1,12 +1,14 @@
-CC=gcc
 ROOT_DIR=$(shell pwd)
 BIN=compiler
 OBJS_DIR=obj
 BIN_DIR=bin
 SRC_DIR=src
+INC_DIR=src/include
 TEST_INPUT=input
 TEST_OUTPUT=output
-export CC BIN OBJS_DIR BIN_DIR ROOT_DIR
+CFLAG=-I${ROOT_DIR}/${INC_DIR}
+CC=gcc ${CFLAG}
+export CC BIN OBJS_DIR BIN_DIR ROOT_DIR INC_DIR
 
 CUR_SOURCE=${wildcard *.c}
 CUR_OBJS=${patsubst %.c, %.o, $(CUR_SOURCE)}
@@ -42,7 +44,7 @@ compile:build build_PL0
 ###################################################################################	
 #Build a driver execute file
 ###################################################################################	
-DRIVEROBJS=${OBJS_DIR}/compilerDriver.o ${OBJS_DIR}/virtualMachine.o ${OBJS_DIR}/scanner.o ${OBJS_DIR}/dfa.o ${OBJS_DIR}/symbolTable.o ${OBJS_DIR}/parse.o ${OBJS_DIR}/parserInit.o ${OBJS_DIR}/unparse.o ${OBJS_DIR}/gencode.o ${OBJS_DIR}/printAST.o
+DRIVEROBJS=${OBJS_DIR}/compilerDriver.o ${OBJS_DIR}/virtualMachine.o ${OBJS_DIR}/scanner.o ${OBJS_DIR}/dfa.o ${OBJS_DIR}/symbolTable.o ${OBJS_DIR}/parse.o ${OBJS_DIR}/parserInit.o ${OBJS_DIR}/unparse.o ${OBJS_DIR}/gencode.o ${OBJS_DIR}/printAST.o ${OBJS_DIR}/parse_common.o
 build_PL0:${DRIVEROBJS}
 	${CC} -o ${BIN_DIR}/compile $^
 
@@ -76,7 +78,7 @@ test_scanner:${SCANNEROBJS}
 ################################################               
 #		    parse Test
 ################################################
-PARSEOBJS=${OBJS_DIR}/test_parser.o ${OBJS_DIR}/symbolTable.o ${OBJS_DIR}/parse.o ${OBJS_DIR}/parserInit.o ${OBJS_DIR}/unparse.o ${OBJS_DIR}/printAST.o ${OBJS_DIR}/gencode.o ${OBJS_DIR}/virtualMachine.o
+PARSEOBJS=${OBJS_DIR}/test_parser.o ${OBJS_DIR}/symbolTable.o ${OBJS_DIR}/parse.o ${OBJS_DIR}/parserInit.o ${OBJS_DIR}/unparse.o ${OBJS_DIR}/printAST.o ${OBJS_DIR}/gencode.o ${OBJS_DIR}/virtualMachine.o ${OBJS_DIR}/parse_common.o
 test_parse:${PARSEOBJS}
 	${CC} -o ${BIN_DIR}/$@ $^
 	${BIN_DIR}/$@ -i ${TEST_INPUT}/dfa.txt

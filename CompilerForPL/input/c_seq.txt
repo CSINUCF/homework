@@ -16,7 +16,7 @@ procedure sub;
 		call mult;
 		q := z - c - d;
 		write q
-	end;	
+	end	
 begin
   x := m;
   y := n;

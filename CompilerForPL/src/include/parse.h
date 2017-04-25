@@ -23,6 +23,43 @@ If not, see <http://www.gnu.org/licenses/>.
 #include "symtable.h"
 #include "gencode.h"
 #include "ast_node.h"
+#include <stdlib.h>   
+#include <stdio.h>   
+#include <stdarg.h>   
+
+
+
+
+
+typedef enum {
+	NON_BLOCK=0,
+	NON_STATEMENT=1,
+	NON_CONDITION=2,
+	NON_EXPRESSION=3,
+	NON_TERM=4,
+	NON_FACTOR=5
+}NonTerminal_t;
+
+typedef struct snode 
+{ 
+	Token_t elem; 
+	struct snode* next; 
+} snode, *symset; 
+extern symset phi;
+extern symset blockbegsys;
+extern symset declbegsys;
+extern symset statbegsys;
+extern symset condbegsys;
+extern symset exprbegsys;
+extern symset facbegsys;
+extern symset termbegsys;
+extern symset relset; 
+ 
+symset createset(Token_t data, .../* SYM_NULL */); 
+void destroyset(symset s); 
+symset uniteset(symset s1, symset s2); 
+int inset(Token_t elem, symset s); 
+void showset(symset s);
 
 /*
   *
@@ -53,4 +90,11 @@ typedef struct Parse{
 }Parse_t;
 extern char *opSymbol[];
 extern struct Parse * parse_init(struct SymTable *syms);
+void getToken(struct Parse *this);
+Token_t getfollowToken(struct Parse *this);
+void scanFollowSymbol(struct Parse *this,NonTerminal_t nonterminal);
+void scanFirstSymbol(struct Parse *this,NonTerminal_t nonterminal);
+int firstAndFollowSet(struct Parse *this);
+void expect(struct Parse *this,Token_t expect);
+
 #endif

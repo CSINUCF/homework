@@ -14,9 +14,8 @@ PURPOSE.  See the GNU General Public License for more details.
 You should have received a copy of the GNU General Public License along with this program.
 If not, see <http://www.gnu.org/licenses/>.
 */
-#include "../include/parse.h"
+#include "parse.h"
 
-extern char *opSymbol[];
 void statementPrintAST(statementNode_t *sts,int t,FILE *stdout);
 void expressionPrintAST(expressionNode_t *exp,int t,FILE *stdout);
 void blockPrintAST(struct blockNode *blk,int t,FILE *stdout);
