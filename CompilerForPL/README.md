@@ -94,7 +94,7 @@ In this project, I have implemented the following components of a compiler for P
 	- Unit test for scanner
 	- Unit test for parser.
 	- Unit test for virtual machine.
-- **Error detect and Recovery**
+- **Error detect and Recovery (Recursive Descend Parser)**
 	- Detect error about missing "." at the end of program and recovery  
 		example: "end" -->  "end."  
 	- Detect error about assignment clause in which using "=" instead of ":=" and recovery  
@@ -102,7 +102,7 @@ In this project, I have implemented the following components of a compiler for P
 	- Detect error about mix operation in an expression and recovery  
 		example: "a ++ 3;" --> "a + 3;"  
 		example "a \*+ 3;" --> "a \* 3;"
-	- Detect error about missing semicolons for some clause and recovery
+	- Detect error about missing semicolons for some clause and recovery  
 	  example: "a = 3" --> "a := 3;"
 
 
