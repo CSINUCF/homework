@@ -51,6 +51,7 @@ In this project, I have implemented the following components of a compiler for P
 	- while statement
 	- procedure and sub-procedure
 	- input and output function (read and write statement)
+	- Comments
 - **Virtual Machine**
 	- Using 16 common registers to facilitate the process of virtual machine;
 	- handle the function or method invoke;
@@ -104,6 +105,8 @@ In this project, I have implemented the following components of a compiler for P
 		example "a \*+ 3;" --> "a \* 3;"
 	- Detect error about missing semicolons for some clause and recovery  
 	  example: "a = 3" --> "a := 3;"
+	- Detect error about missing right parenthesis  
+	  example: "a := (3+5" --> "a := (3+5)"
 
 
 # 3. User Mannual

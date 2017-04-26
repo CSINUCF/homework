@@ -1189,9 +1189,9 @@ int factorParse(struct Parse *this,factorNode_t *fn,symset fsys){
 			if(curToken->cToken == rparentsym){
 				getToken(this);
 			}else{				
-				logerror("Token:[%d,%s]",curToken->cToken,opSymbol[curToken->cToken]);
-				throwError(22);
-				return -1;
+				set1=createset(lparentsym,nulsym);
+				test(this,fsys,set1,22);  
+				destroyset(set1);
 			}
     	}break;
 		default:{
